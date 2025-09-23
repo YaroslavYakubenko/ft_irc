@@ -5,14 +5,19 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <csignal>
+#include <cerrno>
 
 #define BACKLOG 10
 #define BUFFER_SIZE 1024
+
+extern bool running;
 
 class Server {
 private:
