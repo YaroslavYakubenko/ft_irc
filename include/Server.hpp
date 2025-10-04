@@ -13,6 +13,8 @@
 #include <poll.h>
 #include <csignal>
 #include <cerrno>
+#include <fcntl.h>
+#include "Client.hpp"
 
 #define BACKLOG 10
 #define BUFFER_SIZE 1024
@@ -25,6 +27,7 @@ private:
 	std::string			_password;
 	int					_listener;
 	std::vector<pollfd>	_fds;
+	std::vector<Client> _clients;
 
 	void	initSocket();
 	void	handleNewConnection();

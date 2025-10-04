@@ -1,7 +1,6 @@
 #include "../include/Server.hpp"
 #include "../include/Client.hpp"
 
-std::vector<Client> _clients;
 bool running = true;
 
 Server::Server(int port, const std::string &password) : _port(port), _password(password), _listener(-1) {
@@ -15,8 +14,19 @@ Server::~Server() {
 		close(_listener);
 }
 
+static int setNonBlocking(int fd) {
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		return -1;
+	return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
 void Server::initSocket() {
 	_listener = socket(AF_INET, SOCK_STREAM, 0);
+	if (setNonBlocking(_listener) < 0) {
+		perror("fcntl");
+		exit(EXIT_FAILURE);
+	}
 	if (_listener < 0) {
 		perror("socket");
 		exit(EXIT_FAILURE);
@@ -80,6 +90,7 @@ void Server::handleNewConnection() {
 	sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
 	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len);
+	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
 		Client new_client(client_fd);
 		_clients.push_back(new_client);

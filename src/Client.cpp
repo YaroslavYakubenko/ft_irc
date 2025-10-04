@@ -1,4 +1,5 @@
-#include "Client.hpp"
+#include "../include/Client.hpp"
+#include "../include/Server.hpp"
 
 Client::Client() : _fd(-1), _registered(false) {}
 
@@ -35,3 +36,19 @@ void Client::setUsername(const std::string& username) {_username = username;}
 void Client::setHostname(const std::string& hostname) {_hostname = hostname;}
 void Client::setRealname(const std::string& realname) {_realname = realname;}
 void Client::setRegistered(bool registered) {_registered = registered;}
+
+bool Client::popLine(std::string &out) {
+	size_t pos = _recv_buffer.find("\r\n");
+	size_t len = 2;
+	if (pos == std::string::npos) {
+		pos = _recv_buffer.find('\n');
+		len = 1;
+	}
+	if (pos == std::string::npos)
+		return false;
+	out = _recv_buffer.substr(0, pos);
+	if (!out.empty() && out[out.size() - 1] == '\r')
+		out.erase(out.size() -1);
+	_recv_buffer.erase(0, pos + len);
+	return true;
+}

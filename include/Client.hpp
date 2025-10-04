@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Server.hpp"
+#include <string>
+
+class Server;
 
 class Client {
 private:
@@ -10,7 +12,10 @@ private:
 	std::string	_hostname;
 	std::string	_realname;
 	bool		_registered;
-	public:
+	std::string	_recv_buffer;
+	std::string	_send_buffer;
+	bool		_pass_ok;
+public:
 	Client();
 	Client(int fd);
 	Client(const Client& other);
@@ -30,6 +35,6 @@ private:
 	void	setHostname(const std::string& hostname);
 	void	setRealname(const std::string& realname);
 	void	setRegistered(bool registered);
-	
-	// std::vector<Client> _clients;
+
+	bool	popLine(std::string &out);
 };
