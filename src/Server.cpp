@@ -134,3 +134,19 @@ void Server::handleClient(size_t i) {
 		}
 	}
 }
+
+Client* Server::findClientByNick(const std::string& nickname) {
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i].getNickname() == nickname)
+			return &_clients[i];
+	}
+	return NULL;
+}
+
+const Client* Server::findClientByNick(const std::string& nickname) const {
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i].getNickname() == nickname)
+			return &_clients[i];
+	}
+	return NULL;
+}

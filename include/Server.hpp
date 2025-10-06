@@ -37,4 +37,7 @@ public:
 	~Server();
 
 	void	run();
+
+	Client* findClientByNick(const std::string& nickname);
+	const Client* findClientByNick(const std::string& nickname) const;
 };
