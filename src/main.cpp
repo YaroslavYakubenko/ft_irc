@@ -13,6 +13,7 @@ int main(int ac, char **av) {
 		std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
 		return 1;
 	}
+	// TODO: add check for right port and psswrd
 	int port = std::atoi(av[1]);
 	std::string password = av[2];
 	std::signal(SIGINT, signalHandler);
