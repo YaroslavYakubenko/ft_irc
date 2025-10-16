@@ -27,7 +27,7 @@ void Server::initSocket() {
 		perror("fcntl");
 		exit(EXIT_FAILURE);
 	}
-	if (_listener < 0) {
+	if (_listener < 0) { // TODO: shouldn't it be right after creation of the socket?
 		perror("socket");
 		exit(EXIT_FAILURE);
 	}
