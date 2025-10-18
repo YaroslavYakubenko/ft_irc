@@ -63,7 +63,7 @@ void Server::initSocket() {
 void Server::run() {
 	// char buffer[BUFFER_SIZE];
 	// bool running = true;
-	while (running) {
+	while (running) { // TODO: can't it be while(1)?
 		int ret = poll(_fds.data(), _fds.size(), -1);
 		if (ret < 0) {
 			if (errno == EINTR)
@@ -71,6 +71,7 @@ void Server::run() {
 			perror("poll");
 			break;
 		}
+		// TODO: split listener and clients check (if (_fds[i].fd == _listener))
 		for (size_t i = 0; i < _fds.size(); ++i) {
 			if (_fds[i].revents & POLLIN) {
 				if (_fds[i].fd == _listener) {
