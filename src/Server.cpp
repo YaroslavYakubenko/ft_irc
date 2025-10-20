@@ -90,7 +90,7 @@ void Server::run() {
 void Server::handleNewConnection() {
 	sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
-	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len);
+	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // should we not check if accept returns an error
 	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
 		Client new_client(client_fd);
@@ -101,7 +101,7 @@ void Server::handleNewConnection() {
 		client_fd_struct.revents = 0;
 		_fds.push_back(client_fd_struct);
 		std::cout << "New client connected: fd=" << client_fd << std::endl;
-	}
+	} // TODO: add error msg if accept returns -1
 }
 
 void Server::handleClient(size_t i) {
@@ -109,7 +109,7 @@ void Server::handleClient(size_t i) {
 	char buffer[BUFFER_SIZE];
 	std::memset(buffer, 0, BUFFER_SIZE);
 	ssize_t bytes = recv(_fds[i].fd, buffer, BUFFER_SIZE - 1, 0);
-	if (bytes <= 0) {
+	if (bytes <= 0) { // TODO: 0 means client disconnected, <0 means error and it has errno
 		std::cout << "Client dissconnected: fd=" << _fds[i].fd << std::endl;
 		close(fd);
 		_fds.erase(_fds.begin() + i);
@@ -132,7 +132,7 @@ void Server::handleClient(size_t i) {
 			std::cout << "Recieved from fd=" << fd << ":" << msg;
 			std::string reply = "Recieved: " + msg;
 			send(fd, reply.c_str(), reply.size(), 0);
-		}
+		} // TODO: add error msg
 	}
 }
 
