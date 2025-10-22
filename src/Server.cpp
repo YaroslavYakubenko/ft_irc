@@ -104,6 +104,16 @@ void Server::handleNewConnection() {
 	} // TODO: add error msg if accept returns -1
 }
 
+void process_msg(fd, buffer, len){
+	char ss[512];
+	strncpy(ss, buffer, len);
+	ss[len] = '\0';
+	// Channel channel = parse();
+	channel
+
+
+}
+
 void Server::handleClient(size_t i) {
 	int	fd = _fds[i].fd;
 	char buffer[BUFFER_SIZE];
@@ -131,6 +141,7 @@ void Server::handleClient(size_t i) {
 		if (client_ptr) {
 			std::cout << "Recieved from fd=" << fd << ":" << msg;
 			std::string reply = "Recieved: " + msg;
+			// process_msg(fd, buffer, bytes); <--------------------------here
 			send(fd, reply.c_str(), reply.size(), 0);
 		} // TODO: add error msg
 	}

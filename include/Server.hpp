@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <fcntl.h>
 #include "Client.hpp"
+#include "Channel.hpp"
 
 #define BACKLOG 10
 #define BUFFER_SIZE 1024
@@ -40,4 +41,5 @@ public:
 
 	Client* findClientByNick(const std::string& nickname);
 	const Client* findClientByNick(const std::string& nickname) const;
+	void process_msg(fd, buffer, len);
 };

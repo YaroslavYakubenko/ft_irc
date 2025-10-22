@@ -6,6 +6,19 @@
 #include <set>
 #include "Client.hpp"
 
+enum Commands{
+	UNKNOWN,
+	USER,
+	NICK,
+	PASS,
+	JOIN,
+	PRIVMSG,
+	KICK,
+	INVITE,
+	TOPIC,
+	MODE
+};
+
 class Channel {
 private:
 	std::string				_name;

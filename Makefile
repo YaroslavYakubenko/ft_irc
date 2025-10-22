@@ -1,7 +1,7 @@
 NAME = ircserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude
+CXXFLAGS = -std=c++98 -Iinclude #-Wall -Wextra -Werror
 RM = rm -rf
 
 SRC_DIR = src
