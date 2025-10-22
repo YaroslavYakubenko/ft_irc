@@ -4,4 +4,4 @@
 #include "../include/Channel.hpp"
 #include <string>
 
-void parse(std::string msg, Server server);
+void parse(std::string &msg);

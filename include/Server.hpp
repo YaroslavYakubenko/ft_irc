@@ -41,5 +41,5 @@ public:
 
 	Client* findClientByNick(const std::string& nickname);
 	const Client* findClientByNick(const std::string& nickname) const;
-	void process_msg(fd, buffer, len);
+	void process_msg(int fd, char *buffer, size_t len);
 };

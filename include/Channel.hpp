@@ -30,6 +30,7 @@ private:
 	std::vector<Client*>	_clients;
 	std::set<Client*>		_operators;
 	std::set<Client*>		_invited;
+	int						_last_cmd;
 public:
 	Channel(const std::string &name);
 	~Channel();
@@ -60,6 +61,9 @@ public:
 	void clearKey();
 	void setUserLimit(int limit);
 	void clearUserLimit();
+
+	void execCmd();
+
 
 	bool kick(Client* operatorClient, Client* targetClient, const std::string &comment);
 	bool inviteCommand(Client* operatorClient, Client* targetClient);
