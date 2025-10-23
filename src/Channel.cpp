@@ -99,6 +99,7 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 		return true;
 	}
 	if (_topicLock && !isOperator(client))
+	// if (!isOperator(client))
 		return false;
 	_topic = newTopic;
 	std::string msg = ":" + client->getNickname() + " TOPIC " + _name + " :" + _topic + "\r\n";
