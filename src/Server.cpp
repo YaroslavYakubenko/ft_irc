@@ -100,17 +100,30 @@ void Server::handleNewConnection() {
 		client_fd_struct.events = POLLIN;
 		client_fd_struct.revents = 0;
 		_fds.push_back(client_fd_struct);
+		//char buffer[BUFFER_SIZE];
+		//std::memset(buffer, 0, BUFFER_SIZE);
+		//ssize_t bytes = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
+		// BUFFER IS EMPTY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//std::cout << "handle NEW CONNECTION buffer = " << buffer << std::endl;
+		//new_client.setInfo(buffer, bytes);
 		std::cout << "New client connected: fd=" << client_fd << std::endl;
 	} // TODO: add error msg if accept returns -1
 }
 
 void Server::process_msg(int fd, char *buffer, size_t len){
+	std::cout << "PROCCESS_MSG" << std::endl;
 	char ss[512];
 	strncpy(ss, buffer, len);
 	ss[len] = '\0';
-	// Channel channel = parse(ss);
+	Client * client_ptr;
+	for (size_t j = 0; j < _clients.size(); ++j) {
+			if (_clients[j].getFd() == fd) {
+				client_ptr = &_clients[j];
+				break;
+			}
+	}
+	parse(ss, this, client_ptr);
 	//channel.execCmd();
-	std::cout << "process_msg ss = " << ss << std::endl;
 }
 
 void Server::handleClient(size_t i) {

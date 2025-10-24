@@ -19,6 +19,8 @@ enum Commands{
 	MODE
 };
 
+class Client;
+
 class Channel {
 private:
 	std::string				_name;

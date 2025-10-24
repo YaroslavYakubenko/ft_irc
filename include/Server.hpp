@@ -16,12 +16,13 @@
 #include <fcntl.h>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Parsing.hpp"
 
 #define BACKLOG 10
 #define BUFFER_SIZE 1024
 
 extern bool running;
-
+class Client;
 class Server {
 private:
 	int					_port;
