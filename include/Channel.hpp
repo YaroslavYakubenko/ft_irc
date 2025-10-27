@@ -15,6 +15,7 @@ private:
 	bool					_inviteOnly;
 	bool					_topicLock;
 	std::vector<Client*>	_clients;
+	std::vector<Channel*>	_channels;
 	std::set<Client*>		_operators;
 	std::set<Client*>		_invited;
 public:
@@ -30,8 +31,9 @@ public:
 
 	void addClient(Client* client);
 	void removeClient(Client* client);
-	bool hasClient(Client* client) const;
+	bool hasClient(const Client* client) const;
 	const std::vector<Client*>& getClients() const;
+	const std::vector<Channel*>& getChannel() const; //?
 
 	void addOperator(Client* client);
 	void removeOperator(Client* client);
@@ -52,4 +54,8 @@ public:
 	bool inviteCommand(Client* operatorClient, Client* targetClient);
 	bool topicCommand(Client* client, const std::string &newTopic);
 	bool modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param);
+	void privmsg(const Client& sender, const std::string& target, const std::string& message);
+
+	Client* findClientByNick(const std::string& nickname);
+	Channel* findChannelByName(const std::string& channelname);
 };

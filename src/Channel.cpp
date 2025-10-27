@@ -36,7 +36,7 @@ void Channel::removeClient(Client* client) {
 	_invited.erase(client);
 }
 
-bool Channel::hasClient(Client* client) const {
+bool Channel::hasClient(const Client* client) const {
 	for (std::vector<Client*>::const_iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (*it == client)
 			return true;
@@ -45,6 +45,8 @@ bool Channel::hasClient(Client* client) const {
 }
 
 const std::vector<Client*>& Channel::getClients() const {return _clients;}
+
+const std::vector<Channel*>& Channel::getChannel() const {return _channels;} //?
 
 void Channel::addOperator(Client* client) {_operators.insert(client);}
 
@@ -139,4 +141,42 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 	for (size_t i = 0; i < _clients.size(); i++)
 		send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 	return true;
+}
+
+void Channel::privmsg(const Client& sender, const std::string& target, const std::string& message) {
+	if (target.empty() || message.empty())
+		return;
+	if (target[0] == '#') {
+		Channel* channel = findChannelByName(target);
+		if (!channel || !channel->hasClient(&sender))
+			return;
+		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		const std::vector<Client*>& clients = channel->getClients();
+		for (size_t i = 0; i < clients.size(); ++i) {
+			if (clients[i] != &sender)
+				send(clients[i]->getFd(), msg.c_str(), msg.size(), 0);
+		}
+	} else {
+		Client* recipient = findClientByNick(target);
+		if (!recipient)
+			return;
+		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		send(recipient->getFd(), msg.c_str(), msg.size(), 0);
+	}
+}
+
+Client* Channel::findClientByNick(const std::string& nickname) {
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getNickname() == nickname)
+			return _clients[i];
+		return NULL;
+	}
+}
+
+Channel* Channel::findChannelByName(const std::string& channelName) {
+	for (size_t i = 0; i < _channels.size(); ++i) {
+			if (_channels[i]->getName() == channelName)
+				return _channels[i];
+			return NULL;
+	}
 }
