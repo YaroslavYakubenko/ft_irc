@@ -5,21 +5,10 @@
 #include <string>
 #include <set>
 #include "Client.hpp"
-
-enum Commands{
-	UNKNOWN,
-	USER,
-	NICK,
-	PASS,
-	JOIN,
-	PRIVMSG,
-	KICK,
-	INVITE,
-	TOPIC,
-	MODE
-};
+#include "Command.hpp"
 
 class Client;
+class Command;
 
 class Channel {
 private:
@@ -33,6 +22,8 @@ private:
 	std::set<Client*>		_operators;
 	std::set<Client*>		_invited;
 	int						_last_cmd;
+	Command					_cmd; // should it stay?
+
 public:
 	Channel(const std::string &name);
 	~Channel();
@@ -64,7 +55,8 @@ public:
 	void setUserLimit(int limit);
 	void clearUserLimit();
 
-	void execCmd();
+	//void execCmd();
+	//void Pass();
 
 
 	bool kick(Client* operatorClient, Client* targetClient, const std::string &comment);

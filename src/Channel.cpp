@@ -139,3 +139,5 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 		send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 	return true;
 }
+
+

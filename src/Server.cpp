@@ -110,6 +110,54 @@ void Server::handleNewConnection() {
 	} // TODO: add error msg if accept returns -1
 }
 
+void Server::Pass(Command *cmd){
+	std::cout << "INSIDE PASS" << std::endl;
+	Client *client = cmd->getClient();
+	std::vector<std::string>args = cmd->getArgs();
+	std::vector<std::string>::iterator it = args.begin();
+    while(it != args.end())
+    {
+        if(*it == "NICK")
+			client->setNickname(*(++it));
+		if(*it == "USER")
+			client->setUsername(*(++it));
+		it++;
+    }
+	std::cout << "New client info:" << std::endl;
+		std::cout << "NICK: " << client->getNickname() << std::endl;
+		std::cout << "User: " << client->getUsername() << std::endl;
+	
+	/*std::cout << "CLIENT PARSE:" << std::endl;
+	std::cout << "MSG came like : " << msg << std::endl;
+	std::istringstream iss(msg);
+    std::string token;
+	iss >> token;
+	if(token == "CAP"){
+		std::cout << "INSIDE CLIENTPARSE" << std::endl;
+		while(iss >> token){
+		if(token == "NICK"){
+			iss >> token;
+			std::cout << "token for NICK = " << token << std::endl;
+			setNickname(token);
+		}
+		if(token == "USER"){
+			iss >> token;
+			std::cout << "token for USER = " << token << std::endl;
+			setUsername(token);
+		}				
+		}*/
+		//}
+	
+}
+
+void Server::execCmd(Command *cmd){
+	std::string mycmd = cmd->getCmd();
+	if(mycmd == "CAP")
+		Pass(cmd);
+	if(mycmd == "JOIN")
+		
+}
+
 void Server::process_msg(int fd, char *buffer, size_t len){
 	std::cout << "PROCCESS_MSG" << std::endl;
 	char ss[512];
@@ -122,8 +170,9 @@ void Server::process_msg(int fd, char *buffer, size_t len){
 				break;
 			}
 	}
-	parse(ss, this, client_ptr);
-	//channel.execCmd();
+	Command cmd = parse(ss, this, client_ptr);
+	cmd.printCmd();
+	execCmd(&cmd);
 }
 
 void Server::handleClient(size_t i) {

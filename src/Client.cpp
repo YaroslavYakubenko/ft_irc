@@ -36,33 +36,7 @@ void Client::setHostname(const std::string& hostname) {_hostname = hostname;}
 void Client::setRealname(const std::string& realname) {_realname = realname;}
 void Client::setRegistered(bool registered) {_registered = registered;}
 
-void Client::clientParse(const std::string &msg){
-	
-	std::cout << "CLIENT PARSE:" << std::endl;
-	std::cout << "MSG came like : " << msg << std::endl;
-	std::istringstream iss(msg);
-    std::string token;
-	iss >> token;
-	if(token == "CAP"){
-		std::cout << "INSIDE CLIENTPARSE" << std::endl;
-		while(iss >> token){
-		if(token == "NICK"){
-			iss >> token;
-			std::cout << "token for NICK = " << token << std::endl;
-			setNickname(token);
-		}
-		if(token == "USER"){
-			iss >> token;
-			std::cout << "token for USER = " << token << std::endl;
-			setUsername(token);
-		}				
-		}
-		std::cout << "New client info:" << std::endl;
-		std::cout << "NICK: " << getNickname() << std::endl;
-		std::cout << "User: " << getUsername() << std::endl;
-		}
-	
-}
+
 
 /*void Client::setInfo(char *buffer, size_t bytes){
 	char ss[512];

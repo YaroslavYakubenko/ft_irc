@@ -5,8 +5,10 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include "Command.hpp"
 
 class Server;
 class Client;
+class Command;
 
-void parse(const std::string &msg, Server *server, Client *client);
+Command parse(const std::string &msg, Server *server, Client *client);

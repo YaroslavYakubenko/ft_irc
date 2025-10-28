@@ -17,6 +17,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Parsing.hpp"
+#include "Command.hpp"
 
 #define BACKLOG 10
 #define BUFFER_SIZE 1024
@@ -43,4 +44,6 @@ public:
 	Client* findClientByNick(const std::string& nickname);
 	const Client* findClientByNick(const std::string& nickname) const;
 	void process_msg(int fd, char *buffer, size_t len);
+	void Pass(Command *cmd);
+	void execCmd(Command *cmd);
 };
