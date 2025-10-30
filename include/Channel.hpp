@@ -37,7 +37,7 @@ public:
 
 	void addClient(Client* client);
 	void removeClient(Client* client);
-	bool hasClient(Client* client) const;
+	bool hasClient(const Client* client) const;
 	const std::vector<Client*>& getClients() const;
 
 	void addOperator(Client* client);
@@ -63,4 +63,6 @@ public:
 	bool inviteCommand(Client* operatorClient, Client* targetClient);
 	bool topicCommand(Client* client, const std::string &newTopic);
 	bool modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param);
+
+	Client* findClientByNick(const std::string& nickname);
 };

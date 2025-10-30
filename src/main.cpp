@@ -1,5 +1,6 @@
 #include "../include/Server.hpp"
 #include "../include/Client.hpp"
+#include "../include/Channel.hpp"
 
 void signalHandler(int signum) {
 	if (signum == SIGINT) {

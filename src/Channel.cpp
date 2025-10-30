@@ -36,7 +36,7 @@ void Channel::removeClient(Client* client) {
 	_invited.erase(client);
 }
 
-bool Channel::hasClient(Client* client) const {
+bool Channel::hasClient(const Client* client) const {
 	for (std::vector<Client*>::const_iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (*it == client)
 			return true;
@@ -99,6 +99,7 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 		return true;
 	}
 	if (_topicLock && !isOperator(client))
+	// if (!isOperator(client))
 		return false;
 	_topic = newTopic;
 	std::string msg = ":" + client->getNickname() + " TOPIC " + _name + " :" + _topic + "\r\n";
@@ -108,6 +109,9 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 }
 
 bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param) {
+	Client* target = findClientByNick(param);
+		if (!target)
+			return false;
 	if (!isOperator(operatorClient))
 		return false;
 	switch (mode) {
@@ -121,9 +125,9 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 			break;
 		case 'o':
 			if (enable)
-				addOperator((Client*)param.c_str());
+				addOperator(target);
 			else
-				removeOperator((Client*)param.c_str());
+				removeOperator(target);
 			break;
 		case 'l':
 			if (enable)
@@ -140,4 +144,10 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 	return true;
 }
 
-
+Client* Channel::findClientByNick(const std::string& nickname) {
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getNickname() == nickname)
+			return _clients[i];
+		}
+	return NULL;
+}
