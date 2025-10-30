@@ -155,9 +155,9 @@ void Server::Pass(Command *cmd){
 
 void Server::execCmd(Command *cmd){
 	std::string mycmd = cmd->getCmd();
-	if(mycmd == "CAP")
+	if(mycmd == "PASS")
 		Pass(cmd);
-	if(mycmd == "JOIN")
+	//if(mycmd == "JOIN")
 		
 }
 

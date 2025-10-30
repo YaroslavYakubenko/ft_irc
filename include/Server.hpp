@@ -24,6 +24,7 @@
 
 extern bool running;
 class Client;
+class Channel;
 class Server {
 private:
 	int						_port;
