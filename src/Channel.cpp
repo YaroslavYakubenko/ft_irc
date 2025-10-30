@@ -46,8 +46,6 @@ bool Channel::hasClient(const Client* client) const {
 
 const std::vector<Client*>& Channel::getClients() const {return _clients;}
 
-const std::vector<Channel*>& Channel::getChannel() const {return _channels;} //?
-
 void Channel::addOperator(Client* client) {_operators.insert(client);}
 
 void Channel::removeOperator(Client* client) {_operators.erase(client);}
@@ -111,6 +109,9 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 }
 
 bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param) {
+	Client* target = findClientByNick(param);
+		if (!target)
+			return false;
 	if (!isOperator(operatorClient))
 		return false;
 	switch (mode) {
@@ -124,9 +125,9 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 			break;
 		case 'o':
 			if (enable)
-				addOperator((Client*)param.c_str());
+				addOperator(target);
 			else
-				removeOperator((Client*)param.c_str());
+				removeOperator(target);
 			break;
 		case 'l':
 			if (enable)
@@ -143,40 +144,10 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 	return true;
 }
 
-void Channel::privmsg(const Client& sender, const std::string& target, const std::string& message) {
-	if (target.empty() || message.empty())
-		return;
-	if (target[0] == '#') {
-		Channel* channel = findChannelByName(target);
-		if (!channel || !channel->hasClient(&sender))
-			return;
-		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-		const std::vector<Client*>& clients = channel->getClients();
-		for (size_t i = 0; i < clients.size(); ++i) {
-			if (clients[i] != &sender)
-				send(clients[i]->getFd(), msg.c_str(), msg.size(), 0);
-		}
-	} else {
-		Client* recipient = findClientByNick(target);
-		if (!recipient)
-			return;
-		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-		send(recipient->getFd(), msg.c_str(), msg.size(), 0);
-	}
-}
-
 Client* Channel::findClientByNick(const std::string& nickname) {
 	for (size_t i = 0; i < _clients.size(); ++i) {
 		if (_clients[i]->getNickname() == nickname)
 			return _clients[i];
-		return NULL;
-	}
-}
-
-Channel* Channel::findChannelByName(const std::string& channelName) {
-	for (size_t i = 0; i < _channels.size(); ++i) {
-			if (_channels[i]->getName() == channelName)
-				return _channels[i];
-			return NULL;
-	}
+		}
+	return NULL;
 }
