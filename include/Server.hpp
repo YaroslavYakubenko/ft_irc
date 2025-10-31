@@ -54,5 +54,6 @@ public:
 	void joinChannel(Client* client, const std::string& channelName, const std::string& key);
 	void sendError(Client* client, const std::string& code, const std::string& channel, const std::string& msg);
 	void privmsg(const Client& sender, const std::string& target, const std::string& message);
+	void printClients();
 
 };

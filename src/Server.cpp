@@ -157,6 +157,10 @@ void Server::execCmd(Command *cmd){
 	std::string mycmd = cmd->getCmd();
 	if(mycmd == "PASS")
 		Pass(cmd);
+	if(mycmd == "PRIVMSG"){
+		std::cout << "Arg[1] = " << (cmd->getArgs())[0] << "Arg[2] = " << (cmd->getArgs())[1] << std::endl;
+		privmsg(*cmd->getClient(), (cmd->getArgs())[0], (cmd->getArgs())[1]);
+	}
 	//if(mycmd == "JOIN")
 		
 }
@@ -285,7 +289,17 @@ void Server::sendError(Client* client, const std::string& code, const std::strin
 	send(client->getFd(), err.c_str(), err.size(), 0);
 }
 
+void Server::printClients(){
+	std::vector<Client>::iterator it = this->_clients.begin();
+        while(it != _clients.end())
+        {
+            std::cout << "Client: " << (*it).getUsername() << std::endl;
+            it++;
+        }
+}
+
 void Server::privmsg(const Client& sender, const std::string& target, const std::string& message) {
+	std::cout << "INSIDE PRIVMSG 1!!!" << std::endl;
 	if (target.empty() || message.empty())
 		return;
 	if (target[0] == '#') {
@@ -299,10 +313,14 @@ void Server::privmsg(const Client& sender, const std::string& target, const std:
 				send(clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 		}
 	} else {
+		std::cout << "INSIDE PRIVMSG 2!!!" << std::endl;
+		printClients();
 		Client* recipient = findClientByNick(target);
 		if (!recipient)
 			return;
+		std::cout << "INSIDE PRIVMSG 3!!!" << std::endl;
 		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
+		std::cout << "fd = " << recipient->getFd() << ", msg = " << msg.c_str() << ", size = " << msg.size() << std::endl;
 		send(recipient->getFd(), msg.c_str(), msg.size(), 0);
 	}
 }
