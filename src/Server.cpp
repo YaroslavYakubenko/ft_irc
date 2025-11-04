@@ -90,10 +90,18 @@ void Server::run() {
 	_fds.clear();
 }
 
+void Server::printClients(){
+	std::cout << "Clients list:" << std::endl;
+	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		std::cout << it->getUsername() << std::endl;
+	}
+}
+
 void Server::handleNewConnection() {
 	sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
-	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // should we not check if accept returns an error
+	// HERE IT ACCEPTS BEFORE IT GETS ANY NAMES
+	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // FIXME: should we not check if accept returns an error
 	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
 		Client new_client(client_fd);
@@ -110,47 +118,52 @@ void Server::handleNewConnection() {
 		//std::cout << "handle NEW CONNECTION buffer = " << buffer << std::endl;
 		//new_client.setInfo(buffer, bytes);
 		std::cout << "New client connected: fd=" << client_fd << std::endl;
+		printClients();
 	} // TODO: add error msg if accept returns -1
+}
+
+bool Server::checkUniqueClient(const std::string& nickname, const std::string& username) {
+	for (size_t i = 0; i < _clients.size(); ++i)
+		if (_clients[i].getNickname() == nickname || _clients[i].getUsername() == username)
+			return 1;
+	return 0;
+}
+
+void Server::removeClient(Client* client) {
+	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if (it->getFd() == client->getFd()) {
+			_clients.erase(it);
+			break;
+		}
+	}
 }
 
 void Server::Pass(Command *cmd){
 	std::cout << "INSIDE PASS" << std::endl;
 	Client *client = cmd->getClient();
+	std::string nick, user;
 	std::vector<std::string>args = cmd->getArgs();
 	std::vector<std::string>::iterator it = args.begin();
     while(it != args.end())
     {
         if(*it == "NICK")
-			client->setNickname(*(++it));
+			nick = *(++it);
 		if(*it == "USER")
-			client->setUsername(*(++it));
+			user = *(++it);
 		it++;
     }
-	std::cout << "New client info:" << std::endl;
+	if(checkUniqueClient(nick, user)){
+		std::cout << "***CLIENT IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		removeClient(client);
+		//disconnect client and tell him so <----------------------------------------here
+	} else{
+		client->setNickname(nick);
+		client->setUsername(user);
+		std::cout << "New client info:" << std::endl;
 		std::cout << "NICK: " << client->getNickname() << std::endl;
 		std::cout << "User: " << client->getUsername() << std::endl;
-	
-	/*std::cout << "CLIENT PARSE:" << std::endl;
-	std::cout << "MSG came like : " << msg << std::endl;
-	std::istringstream iss(msg);
-    std::string token;
-	iss >> token;
-	if(token == "CAP"){
-		std::cout << "INSIDE CLIENTPARSE" << std::endl;
-		while(iss >> token){
-		if(token == "NICK"){
-			iss >> token;
-			std::cout << "token for NICK = " << token << std::endl;
-			setNickname(token);
-		}
-		if(token == "USER"){
-			iss >> token;
-			std::cout << "token for USER = " << token << std::endl;
-			setUsername(token);
-		}				
-		}*/
-		//}
-	
+	}
+	printClients();
 }
 
 void Server::execCmd(Command *cmd){
@@ -287,15 +300,6 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 void Server::sendError(Client* client, const std::string& code, const std::string& channel, const std::string& msg) {
 	std::string err = ":server " + code + " " + client->getNickname() + " " + channel + " :" + msg + "\r\n";
 	send(client->getFd(), err.c_str(), err.size(), 0);
-}
-
-void Server::printClients(){
-	std::vector<Client>::iterator it = this->_clients.begin();
-        while(it != _clients.end())
-        {
-            std::cout << "Client: " << (*it).getUsername() << std::endl;
-            it++;
-        }
 }
 
 void Server::privmsg(const Client& sender, const std::string& target, const std::string& message) {
