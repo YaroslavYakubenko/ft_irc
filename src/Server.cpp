@@ -1,7 +1,10 @@
 #include "../include/Server.hpp"
 #include "../include/Client.hpp"
+#include "../include/Channel.hpp"
 
 bool running = true;
+
+Server::Server() {initSocket();}
 
 Server::Server(int port, const std::string &password) : _port(port), _password(password), _listener(-1) {
 	initSocket();
@@ -173,6 +176,8 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 	if (!channel) {
 		channel = new Channel(channelName);
 		addChannel(channel);
+		if (!key.empty())
+			channel->setKey(key);
 		channel->addClient(client);
 		channel->addOperator(client);
 	} else {
@@ -192,11 +197,13 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 		if (channel->hasClient(client))
 			return;
 		channel->addClient(client);
+		if (channel->isInviteOnly() && channel->isInvited(client))
+			channel->removeInvite(client);
 		std::string joinMsg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
 		const std::vector<Client*>& members = channel->getClients();
 		for (size_t i = 0; i < members.size(); ++i)
 			send(members[i]->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
-		channel->topicCommand(client, ""); //?
+		channel->topicCommand(client, "");
 		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :";
 		for (size_t i = 0 ; i < members.size(); ++i)
 			names += members[i]->getNickname() + " ";

@@ -37,8 +37,8 @@ public:
 	void removeOperator(Client* client);
 	bool isOperator(Client* client) const;
 
-	void invite(Client* client);
 	bool isInvited(Client* client) const;
+	void removeInvite(Client* client);
 
 	void setTopic(const std::string &topic);
 	void setInviteOnly(bool flag);

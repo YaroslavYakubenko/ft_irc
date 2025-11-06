@@ -35,6 +35,7 @@ private:
 	void	handleNewConnection();
 	void	handleClient(size_t i);
 public:
+	Server();
 	Server(int port, const std::string &password);
 	~Server();
 
