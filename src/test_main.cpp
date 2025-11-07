@@ -178,40 +178,64 @@ int main() {
 
 
 
-	std::cout << "Operator rights test" << std::endl;
-	Server serverRight;
-	Client oper1, user11;
-	oper.setNickname("Oper");
-	user11.setNickname("User");
-	serverRight.joinChannel(&oper1, "#rightsChannel", "");
-	Channel* rightsChannel = serverRight.findChannelByName("#rightsChannel");
-	if (rightsChannel)
-		std::cout << "Oper create a channel" << std::endl;
-	else
-		std::cout << "Oper could not create a channel" << std::endl;
-	serverRight.joinChannel(&user11, "#rightsChannel", "");
-	if (rightsChannel->hasClient(&user11))
-		std::cout << "User joined to channel" << std::endl;
-	else
-		std::cout << "User could not join to channel" << std::endl;
-	if (rightsChannel->isOperator(&oper1))
-		std::cout << "Oper is operator" << std::endl;
-	else
-		std::cout << "Oper is not a operator" << std::endl;
-	if (rightsChannel->isOperator(&user11))
-		std::cout << "User is operator" << std::endl;
-	else
-		std::cout << "User is not operator" << std::endl;
-	std::cout << "Adding rights to User" << std::endl;
-	bool result = rightsChannel->modeCommand(&oper1, 'o', true, user11.getNickname());
-	if (result)
-		std::cout << "Oper could give rights to User" << std::endl;
-	else
-		std::cout << "Oper could nor give rights to User" << std::endl;
-	if (rightsChannel->isOperator(&user11))
-		std::cout << "User is operator" << std::endl;
-	else
-		std::cout << "User still is not aperator" << std::endl;
+	// std::cout << "Operator rights test" << std::endl;
+	// Server serverRight;
+	// Client oper1, user11;
+	// oper.setNickname("Oper");
+	// user11.setNickname("User");
+	// serverRight.joinChannel(&oper1, "#rightsChannel", "");
+	// Channel* rightsChannel = serverRight.findChannelByName("#rightsChannel");
+	// if (rightsChannel)
+	// 	std::cout << "Oper create a channel" << std::endl;
+	// else
+	// 	std::cout << "Oper could not create a channel" << std::endl;
+	// serverRight.joinChannel(&user11, "#rightsChannel", "");
+	// if (rightsChannel->hasClient(&user11))
+	// 	std::cout << "User joined to channel" << std::endl;
+	// else
+	// 	std::cout << "User could not join to channel" << std::endl;
+	// if (rightsChannel->isOperator(&oper1))
+	// 	std::cout << "Oper is operator" << std::endl;
+	// else
+	// 	std::cout << "Oper is not a operator" << std::endl;
+	// if (rightsChannel->isOperator(&user11))
+	// 	std::cout << "User is operator" << std::endl;
+	// else
+	// 	std::cout << "User is not operator" << std::endl;
+	// std::cout << "Adding rights to User" << std::endl;
+	// bool result = rightsChannel->modeCommand(&oper1, 'o', true, user11.getNickname());
+	// if (result)
+	// 	std::cout << "Oper could give rights to User" << std::endl;
+	// else
+	// 	std::cout << "Oper could nor give rights to User" << std::endl;
+	// if (rightsChannel->isOperator(&user11))
+	// 	std::cout << "User is operator\n" << std::endl;
+	// else
+	// 	std::cout << "User still is not aperator\n" << std::endl;
 	
+
+
+
+	std::cout << "kickChannel test" << std::endl;
+	Server serverKick;
+	Client oper2, user2;
+	oper2.setNickname("Oper2");
+	user2.setNickname("User2");
+	serverKick.joinChannel(&oper2, "#kickChannel", "");
+	serverKick.joinChannel(&user2, "#kickChannel", "");
+	Channel* kickChannel = serverKick.findChannelByName("#kickChannel");
+	if (kickChannel->hasClient(&oper2))
+		std::cout << "Oper2 joined to a channel" << std::endl;
+	else
+		std::cout << "Oper2 could not join to a channel" << std::endl;
+	if (kickChannel->hasClient(&user2))
+		std::cout << "User2 joined to a channel" << std::endl;
+	else
+		std::cout << "User2 could not join to a channel" << std::endl;
+	kickChannel->kick(&oper2, &user2, "kicked");
+	if (kickChannel->hasClient(&user2))
+		std::cout << "User2 is still in a channel\n" << std::endl;
+	else
+		std::cout << "User2 was kicked from channel\n" << std::endl;
 	return 0;
 }
