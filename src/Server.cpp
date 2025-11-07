@@ -66,7 +66,7 @@ void Server::initSocket() {
 void Server::run() {
 	// char buffer[BUFFER_SIZE];
 	// bool running = true;
-	while (running) { // TODO: can't it be while(1)?
+	while (running) {
 		int ret = poll(_fds.data(), _fds.size(), -1);
 		if (ret < 0) {
 			if (errno == EINTR)
@@ -100,7 +100,6 @@ void Server::printClients(){
 void Server::handleNewConnection() {
 	sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
-	// HERE IT ACCEPTS BEFORE IT GETS ANY NAMES
 	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // FIXME: should we not check if accept returns an error
 	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
@@ -130,8 +129,11 @@ bool Server::checkUniqueClient(const std::string& nickname, const std::string& u
 }
 
 void Server::removeClient(Client* client) {
+	std::string msg = "Your nick or user is already taken. Please change it and try to connect again!";
 	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (it->getFd() == client->getFd()) {
+			send(it->getFd(), msg.c_str(), msg.size(), 0);
+			close(it->getFd());
 			_clients.erase(it);
 			break;
 		}
