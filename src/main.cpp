@@ -10,12 +10,20 @@ void signalHandler(int signum) {
 }
 
 int main(int ac, char **av) {
+	int port = std::atoi(av[1]);
+	std::string password = av[2];
 	if (ac != 3) {
 		std::cerr << "Usage: " << av[0] << " <port> <password>" << std::endl;
 		return 1;
 	}
-	int port = std::atoi(av[1]);
-	std::string password = av[2];
+	if (port != 6667) {
+		std::cout << "Port is incorrect" << std::endl;
+		exit(1);
+	}
+	if (password != "123") {
+		std::cout << "Password is incorrect" << std::endl;
+		exit(1);
+	}
 	std::signal(SIGINT, signalHandler);
 	Server server(port, password);
 	server.run();
