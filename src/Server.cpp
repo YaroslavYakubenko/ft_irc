@@ -177,6 +177,7 @@ void Server::execCmd(Command *cmd){
 		privmsg(*cmd->getClient(), (cmd->getArgs())[0], (cmd->getArgs())[1]);
 	}
 	//if(mycmd == "JOIN")
+		//join(); <------------------Делать тут
 		
 }
 
