@@ -154,8 +154,82 @@ void Server::execCmd(Command *cmd){
 	std::string mycmd = cmd->getCmd();
 	if(mycmd == "CAP")
 		Pass(cmd);
-	// if(mycmd == "JOIN")
+	if(mycmd == "JOIN") {
+		std::vector<std::string> args = cmd->getArgs();
+		std::string channelName;
+		std::string key;
+		if (args.size() > 0)
+			channelName = args[0];
+		else
+			channelName = "";
+		if (args.size() > 1)
+			key = args[1];
+		else
+			key = "";
+		std::cout << "Channel: " << channelName << "\n" << "Password: " << key << std::endl;
+		joinChannel(cmd->getClient(), channelName, key);
+	}
 		
+}
+
+Channel* Server::findChannelByName(const std::string& chhanelName) {
+	for (size_t i = 0; i < _channels.size(); ++i) {
+		if (_channels[i]->getName() == chhanelName)
+			return _channels[i];
+		}
+	return NULL;
+}
+
+void Server::addChannel(Channel* channel) {
+	_channels.push_back(channel);
+}
+
+void Server::joinChannel(Client* client, const std::string& channelName, const std::string& key) {
+	Channel* channel = findChannelByName(channelName);
+	if (!channel) {
+		channel = new Channel(channelName);
+		addChannel(channel);
+		if (!key.empty())
+			channel->setKey(key);
+		channel->addClient(client);
+		channel->addOperator(client);
+	} else {
+		if (channel->isInviteOnly() && !channel->isInvited(client)) {
+			sendError(client, "473", channelName, "Cannot join channel (+i)");
+			return;
+		}
+		if (!channel->checkKey(key)) {
+			sendError(client, "475", channelName, "Cannot join channel (+k)");
+			return;
+		}
+		if (channel->getUserLimit() > 0 && channel->getClients().size() >=
+			static_cast<size_t>(channel->getUserLimit())) {
+			sendError(client, "471", channelName, "Cannot join channel (+l)");
+			return;
+		}
+		if (channel->hasClient(client))
+			return;
+		channel->addClient(client);
+		if (channel->isInviteOnly() && channel->isInvited(client))
+			channel->removeInvite(client);
+		std::string joinMsg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
+		const std::vector<Client*>& members = channel->getClients();
+		for (size_t i = 0; i < members.size(); ++i)
+			send(members[i]->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
+		channel->topicCommand(client, "");
+		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :";
+		for (size_t i = 0 ; i < members.size(); ++i)
+			names += members[i]->getNickname() + " ";
+		names += "\r\n";
+		send(client->getFd(), names.c_str(), names.size(), 0);
+		std::string endMsg = ":server 366 " + client->getNickname() + "  " + channelName + " :End of /name list\r\n";
+		send(client->getFd(), endMsg.c_str(), endMsg.size(), 0);
+	}
+}
+
+void Server::sendError(Client* client, const std::string& code, const std::string& channel, const std::string& msg) {
+	std::string err = ":server " + code + " " + client->getNickname() + " " + channel + " :" + msg + "\r\n";
+	send(client->getFd(), err.c_str(), err.size(), 0);
 }
 
 void Server::process_msg(int fd, char *buffer, size_t len){

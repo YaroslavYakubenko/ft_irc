@@ -24,6 +24,7 @@
 
 extern bool running;
 class Client;
+class Channel;
 class Server {
 private:
 	int					_port;
@@ -31,6 +32,7 @@ private:
 	int					_listener;
 	std::vector<pollfd>	_fds;
 	std::vector<Client> _clients;
+	std::vector<Channel*>	_channels;
 
 	void	initSocket();
 	void	handleNewConnection();
@@ -46,4 +48,9 @@ public:
 	void process_msg(int fd, char *buffer, size_t len);
 	void Pass(Command *cmd);
 	void execCmd(Command *cmd);
+
+	Channel* findChannelByName(const std::string& channelName);
+	void addChannel(Channel* channel);
+	void joinChannel(Client* client, const std::string& channelName, const std::string& key);
+	void sendError(Client* client, const std::string& code, const std::string& channel, const std::string& msg);
 };

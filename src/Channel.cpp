@@ -52,9 +52,9 @@ void Channel::removeOperator(Client* client) {_operators.erase(client);}
 
 bool Channel::isOperator(Client* client) const {return (_operators.find(client) != _operators.end());}
 
-void Channel::invite(Client* client) {_invited.insert(client);}
-
 bool Channel::isInvited(Client* client) const {return (_invited.find(client) != _invited.end());}
+
+void Channel::removeInvite(Client* client) {_invited.erase(client);}
 
 void Channel::setTopic(const std::string &topic) {_topic = topic;}
 
