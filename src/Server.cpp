@@ -174,13 +174,16 @@ void Server::removeChannel(Channel* channel) {
 void Server::joinChannel(Client* client, const std::string& channelName, const std::string& key) {
 	Channel* channel = findChannelByName(channelName);
 	if (!channel) {
-		channel = new Channel(channelName);
+		channel = new Channel(channelName, this);
 		addChannel(channel);
 		if (!key.empty())
 			channel->setKey(key);
 		channel->addClient(client);
 		channel->addOperator(client);
 	} else {
+		if (!channel) {
+			sendError(client, "403", channelName, "No such channel");
+		}
 		if (channel->isInviteOnly() && !channel->isInvited(client)) {
 			sendError(client, "473", channelName, "Cannot join channel (+i)");
 			return;

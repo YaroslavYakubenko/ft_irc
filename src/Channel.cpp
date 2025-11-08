@@ -3,8 +3,8 @@
 #include "../include/Server.hpp"
 #include <algorithm>
 
-Channel::Channel(const std::string &name) : _name(name), _topic(""), _key(""),
-	_userLimit(0), _inviteOnly(false), _topicLock(false) {}
+Channel::Channel(const std::string &name, Server* server) : _name(name), _topic(""), _key(""),
+	_userLimit(0), _inviteOnly(false), _topicLock(false), _server(server) {}
 
 Channel::~Channel() {}
 
@@ -71,8 +71,10 @@ void Channel::setUserLimit(int limit) {_userLimit = limit;}
 void Channel::clearUserLimit() {_userLimit = 0;}
 
 bool Channel::kick(Client* operatorClient, Client* targetClient, const std::string &comment) {
-	if (!isOperator(operatorClient))
+	if (!isOperator(operatorClient)) {
+		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
+	}
 	if (!hasClient(targetClient))
 		return false;
 	std::string msg = ":" + operatorClient->getNickname() + " KICK " + _name + " " +
@@ -84,8 +86,10 @@ bool Channel::kick(Client* operatorClient, Client* targetClient, const std::stri
 }
 
 bool Channel::inviteCommand(Client* operatorClient, Client* targetClient) {
-	if (!isOperator(operatorClient))
+	if (!isOperator(operatorClient)) {
+		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
+	}
 	_invited.insert(targetClient);
 	std::string msg = ":" + operatorClient->getNickname() + " INVITE " + targetClient->getNickname() + " :" + _name + "\r\n";
 	send(targetClient->getFd(), msg.c_str(), msg.size(), 0);
@@ -98,9 +102,10 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 		send(client->getFd(), msg.c_str(), msg.size(), 0);
 		return true;
 	}
-	if (_topicLock && !isOperator(client))
-	// if (!isOperator(client))
+	if (_topicLock && !isOperator(client)) {
+		_server->sendError(client, "482", _name, "You don't have operator's rights");
 		return false;
+	}
 	_topic = newTopic;
 	std::string msg = ":" + client->getNickname() + " TOPIC " + _name + " :" + _topic + "\r\n";
 	for (size_t i = 0; i < _clients.size(); i++)
@@ -112,8 +117,10 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 	Client* target = findClientByNick(param);
 		if (!target)
 			return false;
-	if (!isOperator(operatorClient))
+	if (!isOperator(operatorClient)) {
+		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
+	}
 	switch (mode) {
 		case 'i': _inviteOnly = enable; break;
 		case 't': _topicLock = enable; break;

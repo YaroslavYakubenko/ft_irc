@@ -6,6 +6,8 @@
 #include <set>
 #include "Client.hpp"
 
+class Server;
+
 class Channel {
 private:
 	std::string				_name;
@@ -17,8 +19,9 @@ private:
 	std::vector<Client*>	_clients;
 	std::set<Client*>		_operators;
 	std::set<Client*>		_invited;
+	Server* 				_server;
 public:
-	Channel(const std::string &name);
+	Channel(const std::string &name, Server* server);
 	~Channel();
 
 	const std::string &getName() const;

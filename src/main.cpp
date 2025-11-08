@@ -21,7 +21,7 @@ int main(int ac, char **av) {
 		exit(1);
 	}
 	if (password != "123") {
-		std::cout << "Password is incorrect" << std::endl;
+		std::cout << "464 Password is incorrect" << std::endl;
 		exit(1);
 	}
 	std::signal(SIGINT, signalHandler);
