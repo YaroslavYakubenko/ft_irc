@@ -133,6 +133,7 @@ void Server::removeClient(Client* client) {
 	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (it->getFd() == client->getFd()) {
 			send(it->getFd(), msg.c_str(), msg.size(), 0);
+			//usleep(100000);
 			close(it->getFd());
 			_clients.erase(it);
 			break;
@@ -181,11 +182,11 @@ void Server::execCmd(Command *cmd){
 		
 }
 
-void Server::process_msg(int fd, char *buffer, size_t len){
+void Server::process_msg(int fd, std::string msg){
 	std::cout << "PROCCESS_MSG" << std::endl;
-	char ss[512];
-	strncpy(ss, buffer, len);
-	ss[len] = '\0';
+	//char ss[512];
+	//strncpy(ss, buffer, len);
+	//ss[len] = '\0';
 	Client * client_ptr;
 	for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j].getFd() == fd) {
@@ -193,13 +194,14 @@ void Server::process_msg(int fd, char *buffer, size_t len){
 				break;
 			}
 	}
-	Command cmd = parse(ss, this, client_ptr);
+	Command cmd = parse(msg.c_str(), this, client_ptr);
 	cmd.printCmd();
 	execCmd(&cmd);
 }
 
 void Server::handleClient(size_t i) {
 	int	fd = _fds[i].fd;
+	std::string msg;
 	char buffer[BUFFER_SIZE];
 	std::memset(buffer, 0, BUFFER_SIZE);
 	ssize_t bytes = recv(_fds[i].fd, buffer, BUFFER_SIZE - 1, 0);
@@ -214,20 +216,28 @@ void Server::handleClient(size_t i) {
 			}
 		}
 	} else {
-		std::string msg(buffer, bytes);
-		Client* client_ptr = NULL;
+		_buffer[fd].append(buffer, bytes);
+
+    // Process all complete IRC messages
+    size_t pos;
+    while ((pos = _buffer[fd].find("\r\n")) != std::string::npos) {
+        msg = _buffer[fd].substr(0, pos);
+        _buffer[fd].erase(0, pos + 2);
+
+        std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
+
+	}
+	process_msg(fd, msg);
+		/*Client* client_ptr = NULL;
 		for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j].getFd() == fd) {
 				client_ptr = &_clients[j];
 				break;
 			}
 		}
-		if (client_ptr) {
-			std::cout << "Recieved from fd=" << fd << ":" << msg;
-			std::string reply = "Recieved: " + msg;
-			process_msg(fd, buffer, bytes);
-			send(fd, reply.c_str(), reply.size(), 0);
-		} // TODO: add error msg
+		if (client_ptr) {*/
+			
+		//} // TODO: add error msg
 	}
 }
 

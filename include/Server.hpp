@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string>
 #include <cstring>
 #include <cstdlib>
@@ -33,6 +34,7 @@ private:
 	std::vector<pollfd>		_fds;
 	std::vector<Client> 	_clients;
 	std::vector<Channel*>	_channels;
+	std::map<int, std::string> _buffer;
 
 	void	initSocket();
 	void	handleNewConnection();
@@ -45,7 +47,7 @@ public:
 
 	Client* findClientByNick(const std::string& nickname);
 	const Client* findClientByNick(const std::string& nickname) const;
-	void process_msg(int fd, char *buffer, size_t len);
+	void process_msg(int fd, std::string msg);
 	void Pass(Command *cmd);
 	void execCmd(Command *cmd);
 	Channel* findChannelByName(const std::string& channelName);
