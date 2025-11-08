@@ -72,11 +72,13 @@ void Channel::clearUserLimit() {_userLimit = 0;}
 
 bool Channel::kick(Client* operatorClient, Client* targetClient, const std::string &comment) {
 	if (!isOperator(operatorClient)) {
-		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
+		_server->sendError(operatorClient, "482", _name, "You're not channel operator");
 		return false;
 	}
-	if (!hasClient(targetClient))
+	if (!hasClient(targetClient)) {
+		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
 		return false;
+	}
 	std::string msg = ":" + operatorClient->getNickname() + " KICK " + _name + " " +
 		targetClient->getNickname() + " :" + (comment.empty() ? "kicked" : comment) + "\r\n";
 	for (size_t i = 0; i < _clients.size(); i++)
@@ -115,8 +117,10 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 
 bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param) {
 	Client* target = findClientByNick(param);
-		if (!target)
+		if (!target) {
+			_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
 			return false;
+		}
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;

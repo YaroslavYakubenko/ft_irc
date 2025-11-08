@@ -183,6 +183,7 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 	} else {
 		if (!channel) {
 			sendError(client, "403", channelName, "No such channel");
+			return;
 		}
 		if (channel->isInviteOnly() && !channel->isInvited(client)) {
 			sendError(client, "473", channelName, "Cannot join channel (+i)");
@@ -197,8 +198,10 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 			sendError(client, "471", channelName, "Cannot join channel (+l)");
 			return;
 		}
-		if (channel->hasClient(client))
+		if (channel->hasClient(client)){
+			sendError(client, "443", channelName, "is already on channel");	
 			return;
+		}
 		channel->addClient(client);
 		if (channel->isInviteOnly() && channel->isInvited(client))
 			channel->removeInvite(client);
@@ -222,13 +225,25 @@ void Server::sendError(Client* client, const std::string& code, const std::strin
 	send(client->getFd(), err.c_str(), err.size(), 0);
 }
 
-void Server::privmsg(const Client& sender, const std::string& target, const std::string& message) {
-	if (target.empty() || message.empty())
+void Server::privmsg(Client& sender, std::string& target, const std::string& message) {
+	if (target.empty()) {
+		sendError(&sender, "411", "PRIVMSG", "No recipient given");
 		return;
+	}
+	if (message.empty()) {
+		sendError(&sender, "412", "", "No text to send");
+		return;
+	}
 	if (target[0] == '#') {
 		Channel* channel = findChannelByName(target);
-		if (!channel || !channel->hasClient(&sender))
+		if (!channel) {
+			sendError(&sender, "403", target, "No such channel");
 			return;
+		}
+		if (!channel->hasClient(&sender)) {
+			sendError(&sender, "442", target, "You're not on that channel");
+			return;
+		}
 		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
 		const std::vector<Client*>& clients = channel->getClients();
 		for (size_t i = 0; i < clients.size(); ++i) {
@@ -237,8 +252,10 @@ void Server::privmsg(const Client& sender, const std::string& target, const std:
 		}
 	} else {
 		Client* recipient = findClientByNick(target);
-		if (!recipient)
+		if (!recipient) {
+			sendError(&sender, "401", target, "No such nick");
 			return;
+		}
 		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
 		send(recipient->getFd(), msg.c_str(), msg.size(), 0);
 	}
