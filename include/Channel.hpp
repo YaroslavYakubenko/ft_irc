@@ -5,10 +5,8 @@
 #include <string>
 #include <set>
 #include "Client.hpp"
-#include "Command.hpp"
 
-class Client;
-class Command;
+class Server;
 
 class Channel {
 private:
@@ -21,11 +19,9 @@ private:
 	std::vector<Client*>	_clients;
 	std::set<Client*>		_operators;
 	std::set<Client*>		_invited;
-	int						_last_cmd;
-	Command					_cmd; // should it stay?
-
+	Server* 				_server;
 public:
-	Channel(const std::string &name);
+	Channel(const std::string &name, Server* server);
 	~Channel();
 
 	const std::string &getName() const;
@@ -44,8 +40,8 @@ public:
 	void removeOperator(Client* client);
 	bool isOperator(Client* client) const;
 
-	void invite(Client* client);
 	bool isInvited(Client* client) const;
+	void removeInvite(Client* client);
 
 	void setTopic(const std::string &topic);
 	void setInviteOnly(bool flag);
@@ -54,10 +50,6 @@ public:
 	void clearKey();
 	void setUserLimit(int limit);
 	void clearUserLimit();
-
-	//void execCmd();
-	//void Pass();
-
 
 	bool kick(Client* operatorClient, Client* targetClient, const std::string &comment);
 	bool inviteCommand(Client* operatorClient, Client* targetClient);

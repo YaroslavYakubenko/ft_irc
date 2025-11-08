@@ -222,6 +222,8 @@ void Server::User(Command *cmd){
 
 void Server::execCmd(Command *cmd){
 	std::string mycmd = cmd->getCmd();
+	std::vector<std::string>args = cmd->getArgs();
+	
 	//if(mycmd == "PASS")
 	//	Pass(cmd);
 	if(mycmd == "NICK")
@@ -229,11 +231,11 @@ void Server::execCmd(Command *cmd){
 	if(mycmd == "USER")
 		User(cmd);
 	if(mycmd == "PRIVMSG"){
-		std::cout << "Arg[1] = " << (cmd->getArgs())[0] << "Arg[2] = " << (cmd->getArgs())[1] << std::endl;
-		privmsg(*cmd->getClient(), (cmd->getArgs())[0], (cmd->getArgs())[1]);
+		std::cout << "Arg[1] = " << args[0] << "Arg[2] = " << args[1] << std::endl;
+		privmsg(*cmd->getClient(), args[0], args[1]);
 	}
-	//if(mycmd == "JOIN")
-		//join(); <------------------Делать тут
+	if(mycmd == "JOIN")
+		joinChannel(cmd->getClient(), args[0], args[1]);
 		
 }
 
@@ -328,13 +330,28 @@ void Server::removeChannel(Channel* channel) {
 }
 
 void Server::joinChannel(Client* client, const std::string& channelName, const std::string& key) {
+	std::cout << "INSIDE JOIN " << channelName << " " << key << std::endl;
 	Channel* channel = findChannelByName(channelName);
 	if (!channel) {
-		channel = new Channel(channelName);
+		std::cout << "HERE1!" << std::endl;
+		channel = new Channel(channelName, this);
 		addChannel(channel);
+		if (!key.empty())
+			channel->setKey(key);
 		channel->addClient(client);
 		channel->addOperator(client);
+		std::string joinMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost JOIN :" + channelName + "\r\n";
+		send(client->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
+		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :" + client->getNickname() + "\r\n";
+		send(client->getFd(), names.c_str(), names.size(), 0);
+		std::string endMsg = ":server 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list.\r\n";
+		send(client->getFd(), endMsg.c_str(), endMsg.size(), 0);
 	} else {
+		std::cout << "HERE2!" << std::endl;
+		if (!channel) {
+			sendError(client, "403", channelName, "No such channel");
+			return;
+		}
 		if (channel->isInviteOnly() && !channel->isInvited(client)) {
 			sendError(client, "473", channelName, "Cannot join channel (+i)");
 			return;
@@ -348,21 +365,29 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 			sendError(client, "471", channelName, "Cannot join channel (+l)");
 			return;
 		}
-		if (channel->hasClient(client))
+		if (channel->hasClient(client)){
+			sendError(client, "443", channelName, "is already on channel");	
 			return;
+		}
+		std::cout << "HERE3!" << std::endl;
 		channel->addClient(client);
+		if (channel->isInviteOnly() && channel->isInvited(client))
+			channel->removeInvite(client);
 		std::string joinMsg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
 		const std::vector<Client*>& members = channel->getClients();
+		std::cout << "HERE4!" << std::endl;
 		for (size_t i = 0; i < members.size(); ++i)
 			send(members[i]->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
-		channel->topicCommand(client, ""); //?
+		channel->topicCommand(client, "");
 		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :";
+		std::cout << "HERE5!" << std::endl;
 		for (size_t i = 0 ; i < members.size(); ++i)
 			names += members[i]->getNickname() + " ";
 		names += "\r\n";
 		send(client->getFd(), names.c_str(), names.size(), 0);
 		std::string endMsg = ":server 366 " + client->getNickname() + "  " + channelName + " :End of /name list\r\n";
 		send(client->getFd(), endMsg.c_str(), endMsg.size(), 0);
+		std::cout << "HERE6!" << std::endl;
 	}
 }
 
