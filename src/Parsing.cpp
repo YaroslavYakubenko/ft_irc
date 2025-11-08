@@ -9,9 +9,8 @@ Command parse(const std::string &msg, Server *server, Client *client){
 
 	iss >> cmd;
     /*if(cmd == "CAP"){
-		client->clientParse(msg);
-		Command command(cmd, args);
-		return command;
+		while(cmd != "PASS")
+			iss >> cmd;
 	}*/
     while(iss >> arg){
 		if(arg[0] == ':'){

@@ -57,7 +57,11 @@ public:
 	void sendError(Client* client, const std::string& code, const std::string& channel, const std::string& msg);
 	void privmsg(const Client& sender, const std::string& target, const std::string& message);
 	void printClients();
-	bool checkUniqueClient(const std::string& nickname, const std::string& username);
+	bool checkUniqueClient(const std::string& nickname, const std::string& username); // delete
+	bool checkUniqueNick(const std::string& nickname);
+	bool checkUniqueUser(const std::string& username);
+	void Nick(Command *cmd);
+	void User(Command *cmd);
 	void removeClient(Client* client);
 
 };

@@ -128,6 +128,20 @@ bool Server::checkUniqueClient(const std::string& nickname, const std::string& u
 	return 0;
 }
 
+bool Server::checkUniqueNick(const std::string& nickname) {
+	for (size_t i = 0; i < _clients.size(); ++i)
+		if (_clients[i].getNickname() == nickname)
+			return 1;
+	return 0;
+}
+
+bool Server::checkUniqueUser(const std::string& username) {
+	for (size_t i = 0; i < _clients.size(); ++i)
+		if (_clients[i].getUsername() == username)
+			return 1;
+	return 0;
+}
+
 void Server::removeClient(Client* client) {
 	std::string msg = "Your nick or user is already taken. Please change it and try to connect again!";
 	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
@@ -169,10 +183,51 @@ void Server::Pass(Command *cmd){
 	printClients();
 }
 
+void Server::Nick(Command *cmd){
+	std::cout << "INSIDE NICK" << std::endl;
+	Client *client = cmd->getClient();
+	std::vector<std::string>args = cmd->getArgs();
+	std::string nick = args[0];
+	std::cout << "NICK IS " << nick << std::endl;
+
+	if(checkUniqueNick(nick)){
+		std::cout << "***NICK IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		removeClient(client);
+		//disconnect client and tell him so <----------------------------------------here
+	} else{
+		client->setNickname(nick);
+		std::cout << "New client info:" << std::endl;
+		std::cout << "NICK: " << client->getNickname() << std::endl;
+
+	}
+}
+
+void Server::User(Command *cmd){
+	std::cout << "INSIDE USER" << std::endl;
+	Client *client = cmd->getClient();
+	std::vector<std::string>args = cmd->getArgs();
+	std::string user = args[0];
+	std::cout << "USER IS " << user << std::endl;
+
+	if(checkUniqueUser(user)){
+		std::cout << "***USER IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		removeClient(client);
+		//disconnect client and tell him so <----------------------------------------here
+	} else{
+		client->setUsername(user);
+		std::cout << "USER: " << client->getUsername() << std::endl;
+
+	}
+}
+
 void Server::execCmd(Command *cmd){
 	std::string mycmd = cmd->getCmd();
-	if(mycmd == "PASS")
-		Pass(cmd);
+	//if(mycmd == "PASS")
+	//	Pass(cmd);
+	if(mycmd == "NICK")
+		Nick(cmd);
+	if(mycmd == "USER")
+		User(cmd);
 	if(mycmd == "PRIVMSG"){
 		std::cout << "Arg[1] = " << (cmd->getArgs())[0] << "Arg[2] = " << (cmd->getArgs())[1] << std::endl;
 		privmsg(*cmd->getClient(), (cmd->getArgs())[0], (cmd->getArgs())[1]);
@@ -207,6 +262,7 @@ void Server::handleClient(size_t i) {
 	ssize_t bytes = recv(_fds[i].fd, buffer, BUFFER_SIZE - 1, 0);
 	if (bytes <= 0) { // TODO: 0 means client disconnected, <0 means error and it has errno
 		std::cout << "Client dissconnected: fd=" << _fds[i].fd << std::endl;
+		_buffer.erase(fd);
 		close(fd);
 		_fds.erase(_fds.begin() + i);
 		for (size_t j = 0; j < _clients.size(); ++j) {
@@ -225,9 +281,9 @@ void Server::handleClient(size_t i) {
         _buffer[fd].erase(0, pos + 2);
 
         std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
+		process_msg(fd, msg);
 
 	}
-	process_msg(fd, msg);
 		/*Client* client_ptr = NULL;
 		for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j].getFd() == fd) {
