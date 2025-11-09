@@ -371,6 +371,11 @@ void Server::removeChannel(Channel* channel) {
 
 void Server::joinChannel(Client* client, const std::string& channelName, const std::string& key) {
 	std::cout << "INSIDE JOIN " << channelName << " " << key << std::endl;
+	if(channelName[0] != '#' && channelName[0] != '!' && channelName[0] != '+' && channelName[0] != '&'){
+		sendError(client, "479", channelName, "Illegal channel name");
+		return;
+	}
+
 	Channel* channel = findChannelByName(channelName);
 	if (!channel) {
 		std::cout << "HERE1!" << std::endl;
