@@ -118,7 +118,7 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 
 bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param) {
 	Client* target = findClientByNick(param);
-		if (!target) {
+		if (param != "" && !target) {
 			_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
 			return false;
 		}

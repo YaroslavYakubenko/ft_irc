@@ -228,20 +228,26 @@ void Server::invite(Command *cmd){
 	target_chan->inviteCommand(cmd->getClient(), target_cli);
 }
 
-/*void Server::mode(Command *cmd){
+void Server::mode(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
-	Channel *target_chan = findChannelByName(args[1]);
-	Client *target_cli = findClientByNick(args[0]);
-
-	target_chan->modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param);
-}*/
+	Channel *target_chan = findChannelByName(args[0]);
+	bool enable = 1; // what if not -+, can you make int enable = -1 for default
+	std::string opt = args[1];
+	if(opt[0] == '-')
+		enable = 0;
+	char mode = opt[1];
+	if(args.size() < 3){
+		std::cout << "PARAM IS EMPTY" << std::endl;
+		args.resize(3);
+		args[2] = "";
+		}
+	target_chan->modeCommand(cmd->getClient(), mode, enable, args[2]);
+}
 
 void Server::execCmd(Command *cmd){ 
 	std::string mycmd = cmd->getCmd();
 	std::vector<std::string>args = cmd->getArgs();
 	
-	//if(mycmd == "PASS")
-	//	Pass(cmd);
 	if(mycmd == "NICK")
 		Nick(cmd);
 	if(mycmd == "USER")
@@ -251,17 +257,19 @@ void Server::execCmd(Command *cmd){
 		privmsg(*cmd->getClient(), args[0], args[1]);
 	}
 	if(mycmd == "JOIN"){
-		if(args[1].empty()){
-			std::cout << "KEY IS EMPTY" << std::endl;
-			args[1] = "";
+		std::cout << "SEG CHECK 1" << std::endl;
+		if(args.size() < 2){
+		std::cout << "KEY IS EMPTY" << std::endl;
+		args.resize(2);
+		args[1] = "";
 		}
 
 		joinChannel(cmd->getClient(), args[0], args[1]);
-	}
+  }
 	if(mycmd == "INVITE")
 		invite(cmd);
-	//if(mycmd == "MODE")
-		// mode(cmd);
+	if(mycmd == "MODE")
+		mode(cmd);
 		
 }
 
