@@ -229,19 +229,34 @@ void Server::invite(Command *cmd){
 }
 
 void Server::mode(Command *cmd){
+  std::vector<std::string>args = cmd->getArgs();
+  if(args.size() < 2)
+    return;
+  Channel *target_chan = findChannelByName(args[0]);
+  bool enable = 1; // what if not -+, can you make int enable = -1 for default
+  std::string opt = args[1];
+  if(opt[0] == '-')
+    enable = 0;
+  char mode = opt[1];
+  if(args.size() < 3){
+    std::cout << "PARAM IS EMPTY" << std::endl;
+    args.resize(3);
+    args[2] = "";
+    }
+  target_chan->modeCommand(cmd->getClient(), mode, enable, args[2]);
+}
+
+void Server::kick(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
 	Channel *target_chan = findChannelByName(args[0]);
-	bool enable = 1; // what if not -+, can you make int enable = -1 for default
-	std::string opt = args[1];
-	if(opt[0] == '-')
-		enable = 0;
-	char mode = opt[1];
+	Client *target_cli = findClientByNick(args[2]);
 	if(args.size() < 3){
 		std::cout << "PARAM IS EMPTY" << std::endl;
 		args.resize(3);
-		args[2] = "";
-		}
-	target_chan->modeCommand(cmd->getClient(), mode, enable, args[2]);
+		args[3] = "";
+    }
+
+	target_chan->kick(cmd->getClient(), target_cli, args[2]);
 }
 
 void Server::execCmd(Command *cmd){ 
@@ -270,7 +285,8 @@ void Server::execCmd(Command *cmd){
 		invite(cmd);
 	if(mycmd == "MODE")
 		mode(cmd);
-		
+	if(mycmd == "KICK")
+  		kick(cmd);	
 }
 
 void Server::process_msg(int fd, std::string msg){
@@ -310,26 +326,16 @@ void Server::handleClient(size_t i) {
 	} else {
 		_buffer[fd].append(buffer, bytes);
 
-    // Process all complete IRC messages
-    size_t pos;
-    while ((pos = _buffer[fd].find("\r\n")) != std::string::npos) {
-        msg = _buffer[fd].substr(0, pos);
-        _buffer[fd].erase(0, pos + 2);
+		// Process all complete IRC messages
+		size_t pos;
+		while ((pos = _buffer[fd].find("\r\n")) != std::string::npos) {
+			msg = _buffer[fd].substr(0, pos);
+			_buffer[fd].erase(0, pos + 2);
 
-        std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
-		process_msg(fd, msg);
+			std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
+			process_msg(fd, msg);
 
-	}
-		/*Client* client_ptr = NULL;
-		for (size_t j = 0; j < _clients.size(); ++j) {
-			if (_clients[j]->getFd() == fd) {
-				client_ptr = &_clients[j];
-				break;
-			}
 		}
-		if (client_ptr) {*/
-			
-		//} // TODO: add error msg
 	}
 }
 
