@@ -32,7 +32,7 @@ private:
 	std::string				_password;
 	int						_listener;
 	std::vector<pollfd>		_fds;
-	std::vector<Client> 	_clients;
+	std::vector<Client*> 	_clients;
 	std::vector<Channel*>	_channels;
 	std::map<int, std::string> _buffer;
 
@@ -63,5 +63,6 @@ public:
 	void Nick(Command *cmd);
 	void User(Command *cmd);
 	void removeClient(Client* client);
+	void invite(Command *cmd);
 
 };

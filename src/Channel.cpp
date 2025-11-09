@@ -88,6 +88,7 @@ bool Channel::kick(Client* operatorClient, Client* targetClient, const std::stri
 }
 
 bool Channel::inviteCommand(Client* operatorClient, Client* targetClient) {
+	std::cout << "Operator: " << operatorClient->getUsername() << ", target: " << targetClient->getUsername() << std::endl;
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
@@ -161,4 +162,15 @@ Client* Channel::findClientByNick(const std::string& nickname) {
 			return _clients[i];
 		}
 	return NULL;
+}
+
+std::set<Client*> Channel::getOperators(){return _operators;}
+
+void Channel::printOperators(){
+	std::cout << "Operators in channel:\n";
+for (std::set<Client*>::iterator it = _operators.begin(); it != _operators.end(); ++it) {
+    Client* client = *it;
+    if (client)
+        std::cout << " - " << client->getNickname() << std::endl;
+}
 }

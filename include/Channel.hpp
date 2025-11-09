@@ -7,6 +7,7 @@
 #include "Client.hpp"
 
 class Server;
+class Client;
 
 class Channel {
 private:
@@ -23,6 +24,9 @@ private:
 public:
 	Channel(const std::string &name, Server* server);
 	~Channel();
+
+	std::set<Client*> getOperators();
+	void printOperators();
 
 	const std::string &getName() const;
 	const std::string &getTopic() const;

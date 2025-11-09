@@ -9,7 +9,7 @@ Server::Server(int port, const std::string &password) : _port(port), _password(p
 
 Server::~Server() {
 	for (size_t i = 0; i < _clients.size(); ++i)
-		close(_clients[i].getFd());
+		close(_clients[i]->getFd());
 	if (_listener >= 0)
 		close(_listener);
 	for (size_t i = 0; i < _channels.size(); ++i)
@@ -92,8 +92,8 @@ void Server::run() {
 
 void Server::printClients(){
 	std::cout << "Clients list:" << std::endl;
-	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		std::cout << it->getUsername() << std::endl;
+	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		std::cout << (*it)->getUsername() << std::endl;
 	}
 }
 
@@ -103,7 +103,7 @@ void Server::handleNewConnection() {
 	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // FIXME: should we not check if accept returns an error
 	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
-		Client new_client(client_fd);
+		Client* new_client = new Client(client_fd);
 		_clients.push_back(new_client);
 		pollfd client_fd_struct;
 		client_fd_struct.fd = client_fd;
@@ -123,32 +123,32 @@ void Server::handleNewConnection() {
 
 bool Server::checkUniqueClient(const std::string& nickname, const std::string& username) {
 	for (size_t i = 0; i < _clients.size(); ++i)
-		if (_clients[i].getNickname() == nickname || _clients[i].getUsername() == username)
+		if (_clients[i]->getNickname() == nickname || _clients[i]->getUsername() == username)
 			return 1;
 	return 0;
 }
 
 bool Server::checkUniqueNick(const std::string& nickname) {
 	for (size_t i = 0; i < _clients.size(); ++i)
-		if (_clients[i].getNickname() == nickname)
+		if (_clients[i]->getNickname() == nickname)
 			return 1;
 	return 0;
 }
 
 bool Server::checkUniqueUser(const std::string& username) {
 	for (size_t i = 0; i < _clients.size(); ++i)
-		if (_clients[i].getUsername() == username)
+		if (_clients[i]->getUsername() == username)
 			return 1;
 	return 0;
 }
 
 void Server::removeClient(Client* client) {
 	std::string msg = "Your nick or user is already taken. Please change it and try to connect again!";
-	for (std::vector<Client>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		if (it->getFd() == client->getFd()) {
-			send(it->getFd(), msg.c_str(), msg.size(), 0);
+	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		if ((*it)->getFd() == client->getFd()) {
+			send((*it)->getFd(), msg.c_str(), msg.size(), 0);
 			//usleep(100000);
-			close(it->getFd());
+			close((*it)->getFd());
 			_clients.erase(it);
 			break;
 		}
@@ -220,7 +220,15 @@ void Server::User(Command *cmd){
 	}
 }
 
-void Server::execCmd(Command *cmd){
+void Server::invite(Command *cmd){
+	std::vector<std::string>args = cmd->getArgs();
+	Channel *target_chan = findChannelByName(args[1]);
+	Client *target_cli = findClientByNick(args[0]);
+
+	target_chan->inviteCommand(cmd->getClient(), target_cli);
+}
+
+void Server::execCmd(Command *cmd){ 
 	std::string mycmd = cmd->getCmd();
 	std::vector<std::string>args = cmd->getArgs();
 	
@@ -236,6 +244,8 @@ void Server::execCmd(Command *cmd){
 	}
 	if(mycmd == "JOIN")
 		joinChannel(cmd->getClient(), args[0], args[1]);
+	if(mycmd == "INVITE")
+		invite(cmd);
 		
 }
 
@@ -246,8 +256,8 @@ void Server::process_msg(int fd, std::string msg){
 	//ss[len] = '\0';
 	Client * client_ptr;
 	for (size_t j = 0; j < _clients.size(); ++j) {
-			if (_clients[j].getFd() == fd) {
-				client_ptr = &_clients[j];
+			if (_clients[j]->getFd() == fd) {
+				client_ptr = _clients[j];
 				break;
 			}
 	}
@@ -268,7 +278,7 @@ void Server::handleClient(size_t i) {
 		close(fd);
 		_fds.erase(_fds.begin() + i);
 		for (size_t j = 0; j < _clients.size(); ++j) {
-			if (_clients[j].getFd() == fd) {
+			if (_clients[j]->getFd() == fd) {
 				_clients.erase(_clients.begin() + j);
 				break;
 			}
@@ -288,7 +298,7 @@ void Server::handleClient(size_t i) {
 	}
 		/*Client* client_ptr = NULL;
 		for (size_t j = 0; j < _clients.size(); ++j) {
-			if (_clients[j].getFd() == fd) {
+			if (_clients[j]->getFd() == fd) {
 				client_ptr = &_clients[j];
 				break;
 			}
@@ -301,8 +311,8 @@ void Server::handleClient(size_t i) {
 
 Client* Server::findClientByNick(const std::string& nickname) {
 	for (size_t i = 0; i < _clients.size(); ++i) {
-		if (_clients[i].getNickname() == nickname)
-			return &_clients[i];
+		if (_clients[i]->getNickname() == nickname)
+			return _clients[i];
 	}
 	return NULL;
 }
@@ -340,6 +350,7 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 			channel->setKey(key);
 		channel->addClient(client);
 		channel->addOperator(client);
+		channel->printOperators();
 		std::string joinMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost JOIN :" + channelName + "\r\n";
 		send(client->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
 		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :" + client->getNickname() + "\r\n";
