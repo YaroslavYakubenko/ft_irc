@@ -155,7 +155,7 @@ void Server::removeClient(Client* client) {
 	}
 }
 
-void Server::Pass(Command *cmd){
+/*void Server::Pass(Command *cmd){
 	std::cout << "INSIDE PASS" << std::endl;
 	Client *client = cmd->getClient();
 	std::string nick, user;
@@ -181,7 +181,7 @@ void Server::Pass(Command *cmd){
 		std::cout << "User: " << client->getUsername() << std::endl;
 	}
 	printClients();
-}
+}*/
 
 void Server::Nick(Command *cmd){
 	std::cout << "INSIDE NICK" << std::endl;
@@ -222,10 +222,22 @@ void Server::User(Command *cmd){
 
 void Server::invite(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
+	std::cout << "INVITE1" << std::endl;
 	Channel *target_chan = findChannelByName(args[1]);
+	std::cout << "INVITE2" << std::endl;
 	Client *target_cli = findClientByNick(args[0]);
-
+	std::cout << "INVITE3" << std::endl;
+	if(!target_cli){
+		sendError(cmd->getClient(), "401", args[0], "No such nick/channel");
+		return;
+	}
+	if(!target_chan){
+		sendError(cmd->getClient(), "401", args[1], "No such nick/channel");
+		return;
+	}
+	std::cout << "INVITE4" << std::endl;
 	target_chan->inviteCommand(cmd->getClient(), target_cli);
+	std::cout << "INVITE5" << std::endl;
 }
 
 void Server::mode(Command *cmd){
