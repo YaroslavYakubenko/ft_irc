@@ -64,5 +64,6 @@ public:
 	void User(Command *cmd);
 	void removeClient(Client* client);
 	void invite(Command *cmd);
+	void mode(Command *cmd);
 
 };

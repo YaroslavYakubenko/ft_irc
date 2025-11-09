@@ -228,6 +228,14 @@ void Server::invite(Command *cmd){
 	target_chan->inviteCommand(cmd->getClient(), target_cli);
 }
 
+/*void Server::mode(Command *cmd){
+	std::vector<std::string>args = cmd->getArgs();
+	Channel *target_chan = findChannelByName(args[1]);
+	Client *target_cli = findClientByNick(args[0]);
+
+	target_chan->modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param);
+}*/
+
 void Server::execCmd(Command *cmd){ 
 	std::string mycmd = cmd->getCmd();
 	std::vector<std::string>args = cmd->getArgs();
@@ -242,10 +250,18 @@ void Server::execCmd(Command *cmd){
 		std::cout << "Arg[1] = " << args[0] << "Arg[2] = " << args[1] << std::endl;
 		privmsg(*cmd->getClient(), args[0], args[1]);
 	}
-	if(mycmd == "JOIN")
+	if(mycmd == "JOIN"){
+		if(args[1].empty()){
+			std::cout << "KEY IS EMPTY" << std::endl;
+			args[1] = "";
+		}
+
 		joinChannel(cmd->getClient(), args[0], args[1]);
+	}
 	if(mycmd == "INVITE")
 		invite(cmd);
+	//if(mycmd == "MODE")
+		// mode(cmd);
 		
 }
 
@@ -346,7 +362,7 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 		std::cout << "HERE1!" << std::endl;
 		channel = new Channel(channelName, this);
 		addChannel(channel);
-		if (!key.empty())
+		if (key != "")
 			channel->setKey(key);
 		channel->addClient(client);
 		channel->addOperator(client);
