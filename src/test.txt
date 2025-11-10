@@ -1,0 +1,58 @@
+//JOIN
+Trying to create channel without called of channel: OK (Usage: JOIN <channel>, joins the channel)
+Trying to create channel without password: OK
+Trying to create channel with password: OK
+Trying to enter with password to a channel without password: NO (could join)!!!!!!!!!!!!!!!!!!!!!!!!!
+Trying to enter without password to a channel with password: OK
+Trying to enter to a channel with password: OK
+Trying to enter to a channel without password: OK
+Trying to join a non-existent channel: OK (test :Illegal channel name)
+
+
+//MSG
+Trying to write in a channel: OK
+Trying to write to client: OK
+Trying to write in a channel without message: OK (Usage: MSG <nick> <message>, sends a private message, message "." to send to last nick or prefix with "=" for dcc chat)
+Trying to write to client without message: OK (Usage: MSG <nick> <message>, sends a private message, message "." to send to last nick or prefix with "=" for dcc chat)
+Trying to write only a message without client/channel: OK
+Trying to write to a non-existent channel: OK
+Trying to write to itself: OK
+
+
+//MODE +o
+Trying to give to client operator's rights: OK
+Client who took operator's rights could kick client from channel: OK
+Client who took operator's rights could kick by itself from channel: OK
+Trying to give back to client operator's rights: OK
+Trying to use operator's rights after remove rights: OK
+Trying to give operator's rights between clients: OK
+Trying to remove operator rights from the only operator: OK
+
+
+//MODE +l
+Trying to set limit to channel: NO (#withoutPass :They aren't on that channel)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+//MODE +i
+Trying to turn invitation on to channel: OK
+Trying to enter to channel without invitation: OK
+Trying to give invitation to client: OK
+Trying to enter to channel after invitation: OK
+Trying to enter to channel after invitation second time: OK (could not becouse it works only one time)
+Trying to invite self: OK (#withoutPass :They aren't on that channe)
+Trying to give invitation again after give invitation and joined client: No (should not give again)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+//MODE +t
+Trying to give rights to anyone to change or look channel's topic: OK
+Trying to give back rights to anyone to change or look channel's topic: OK
+Trying to give rights (/mode '+ t'): NO (should works)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Trying to give rights (/mode '- t'): NO (should works)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+//KICK
+Trying to kick client from channel: OK
+Trying to kick client without rights from channel: OK (#withoutPass :You're not channel operator)
+
+
+//
