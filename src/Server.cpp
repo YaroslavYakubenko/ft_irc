@@ -191,7 +191,9 @@ void Server::Nick(Command *cmd){
 	std::cout << "NICK IS " << nick << std::endl;
 
 	if(checkUniqueNick(nick)){
-		std::cout << "***NICK IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		//sendError(client, "433", nick, "Nickname is already in use"); // libc++abi: terminating due to uncaught exception of type std::length_error: basic_string
+		const std::string err = std::string(":server ") + "433" + " " + nick + " " + " :" + "Nickname is already in use" + "\r\n";
+		send(client->getFd(), err.c_str(), err.size(), 0);
 		removeClient(client);
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
@@ -210,8 +212,13 @@ void Server::User(Command *cmd){
 	std::cout << "USER IS " << user << std::endl;
 
 	if(checkUniqueUser(user)){
-		std::cout << "***USER IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		std::cout << "USER 1" << std::endl;
+		//sendError(client, "433", user, "Username is already in use");
+		const std::string err = std::string(":server ") + "433" + " " + user + " " + " :" + "Username is already in use" + "\r\n";
+		send(client->getFd(), err.c_str(), err.size(), 0);
+		std::cout << "USER 2" << std::endl;
 		removeClient(client);
+		std::cout << "USER 3" << std::endl;
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
 		client->setUsername(user);
