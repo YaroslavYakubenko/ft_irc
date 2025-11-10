@@ -117,37 +117,83 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 }
 
 bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const std::string &param) {
-	Client* target = findClientByNick(param);
-		if (param != "" && !target) {
-			_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
-			return false;
-		}
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
 	}
+	// Client* target = findClientByNick(param);
+	// 	if (param != "" && !target) {
+	// 		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
+	// 		return false;
+	// 	}
 	switch (mode) {
-		case 'i': _inviteOnly = enable; break;
-		case 't': _topicLock = enable; break;
+		case 'i':
+			if (!param.empty()) {
+				_server->sendError(operatorClient, "472", _name, "Invite-only (+i) does noe require a parameter");
+				return false;
+			}
+			_inviteOnly = enable;
+			break;
+		case 't':
+			if (!param.empty()) {
+				_server->sendError(operatorClient, "472", _name, "Topic lock (+t) does noe require a parameter");
+				return false;
+			}
+			_topicLock = enable;
+			break;
 		case 'k':
-			if (enable)
+			if (enable) {
+				if (!param.empty()) {
+					_server->sendError(operatorClient, "461", _name, "Not enough parameters for +k");
+					return false;
+				}
 				_key = param;
+			}
 			else
 				_key.clear();
 			break;
 		case 'o':
-			if (enable)
-				addOperator(target);
-			else
-				removeOperator(target);
+			if (param.empty()) {
+				_server->sendError(operatorClient, "461", _name, "Not enough parameters for +o/-o");
+				return false;
+			}
+			{
+				Client* target = findClientByNick(param);
+				if (!target) {
+					_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
+					return false;
+				}
+				if (enable)
+					addOperator(target);
+				else {
+					if (_operators.size() > 1)
+						removeOperator(target);
+					else
+						return false;
+				}
+			}
 			break;
 		case 'l':
-			if (enable)
-				_userLimit = std::atoi(param.c_str());
-			else
+			if (enable) {
+				int lim = std::atoi(param.c_str());
+				if (lim <= 0) {
+					_server->sendError(operatorClient, "472", _name, "Limit (+l) must be positive");
+                    return false;
+				}
+				_userLimit = lim;
+				std::cout << "Limit for channel " << _name << ": " << _userLimit << std::endl;
+			}
+			else {
+				if (!param.empty()) {
+					_server->sendError(operatorClient, "472", _name, "Removing limit (-l) does not require a parameter");
+                    return false;
+				}
 				_userLimit = 0;
+			}
 			break;
-		default: return false;
+		default:
+			_server->sendError(operatorClient, "472", _name, "Unknown mode");
+			return false;
 	}
 	std::string msg = ":" + operatorClient->getNickname() + " MODE " + _name + " " +
 		(std::string(enable ? "+" : "-") + mode + (param.empty() ? "" : " " + param)) + "\r\n";
