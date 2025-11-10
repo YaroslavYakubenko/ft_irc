@@ -100,7 +100,7 @@ bool Channel::inviteCommand(Client* operatorClient, Client* targetClient) {
 }
 
 bool Channel::topicCommand(Client* client, const std::string &newTopic) {
-	if (newTopic.empty()) {
+	if (newTopic == "") {
 		std::string msg = ":server 332 " + client->getNickname() + " " + _name + " :" + _topic + "\r\n";
 		send(client->getFd(), msg.c_str(), msg.size(), 0);
 		return true;

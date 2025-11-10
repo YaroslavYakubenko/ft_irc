@@ -272,6 +272,18 @@ void Server::kick(Command *cmd){
 	target_chan->kick(cmd->getClient(), target_cli, args[2]);
 }
 
+void Server::topic(Command *cmd){
+	std::vector<std::string>args = cmd->getArgs();
+	Channel *target_chan = findChannelByName(args[0]);
+	if(args.size() < 2){
+		std::cout << "PARAM IS EMPTY" << std::endl;
+		args.resize(2);
+		args[1] = "";
+    }
+
+	target_chan->topicCommand(cmd->getClient(), args[1]);
+}
+
 void Server::execCmd(Command *cmd){ 
 	std::string mycmd = cmd->getCmd();
 	std::vector<std::string>args = cmd->getArgs();
@@ -300,6 +312,8 @@ void Server::execCmd(Command *cmd){
 		mode(cmd);
 	if(mycmd == "KICK")
   		kick(cmd);	
+	if(mycmd == "TOPIC")
+  		topic(cmd);
 }
 
 void Server::process_msg(int fd, std::string msg){
