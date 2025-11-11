@@ -85,6 +85,10 @@ void Server::run() {
 			}
 		}
 	}
+	for (int j = _clients.size() - 1; j >= 0; --j) {
+	    delete _clients[j];
+	    _clients.erase(_clients.begin() + j);
+	}
 	for (size_t i = 0; i < _fds.size(); ++i)
 		close(_fds[i].fd);
 	_fds.clear();
@@ -122,14 +126,20 @@ bool Server::checkUniqueClient(const std::string& nickname, const std::string& u
 	return 0;
 }
 
-bool Server::checkUniqueNick(const std::string& nickname) {
+bool Server::checkUniqueNick(const std::string& nick) {
+	std::string nickname = nick;
+	if (!nickname.empty() && (nickname[nickname.size() - 1] == '\r' || nickname[nickname.size() - 1] == '\n'))
+    		nickname.erase(nickname.size() - 1);
 	for (size_t i = 0; i < _clients.size(); ++i)
 		if (_clients[i]->getNickname() == nickname)
 			return 1;
 	return 0;
 }
 
-bool Server::checkUniqueUser(const std::string& username) {
+bool Server::checkUniqueUser(const std::string& user) {
+	std::string username = user;
+	if (!username.empty() && (username[username.size() - 1] == '\r' || username[username.size() - 1] == '\n'))
+    		username.erase(username.size() - 1);
 	for (size_t i = 0; i < _clients.size(); ++i)
 		if (_clients[i]->getUsername() == username)
 			return 1;
@@ -210,6 +220,9 @@ void Server::User(Command *cmd){
 		std::cout << "USER 1" << std::endl;
 		//sendError(client, "433", user, "Username is already in use");
 		const std::string err = std::string(":server ") + "433" + " " + user + " " + " :" + "Username is already in use" + "\r\n";
+		std::cout << "USER !" << std::endl;
+		std::cout << client->getFd() << std::endl;
+		std::cout << "USER !!" << std::endl;
 		send(client->getFd(), err.c_str(), err.size(), 0);
 		std::cout << "USER 2" << std::endl;
 		removeClient(client);
@@ -327,14 +340,14 @@ void Server::execCmd(Command *cmd){
 
 void Server::process_msg(int fd, std::string msg){
 	std::cout << "PROCCESS_MSG" << std::endl;
-	Client * client_ptr;
+	Client * client_ptr = NULL;
 	for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
 				client_ptr = _clients[j];
 				break;
 			}
 	}
-	Command cmd = parse(msg.c_str(), this, client_ptr);
+	Command cmd = parse(msg.c_str(), client_ptr);
 	cmd.printCmd();
 	execCmd(&cmd);
 }
@@ -353,6 +366,7 @@ void Server::handleClient(size_t i) {
 		_fds.erase(_fds.begin() + i);
 		for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
+				delete _clients[j]; 
 				_clients.erase(_clients.begin() + j);
 				break;
 			}
