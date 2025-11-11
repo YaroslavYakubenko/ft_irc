@@ -82,6 +82,10 @@ void Server::run() {
 			}
 		}
 	}
+	for (int j = _clients.size() - 1; j >= 0; --j) {
+	    delete _clients[j];
+	    _clients.erase(_clients.begin() + j);
+}
 	for (size_t i = 0; i < _fds.size(); ++i)
 		close(_fds[i].fd);
 	_fds.clear();
@@ -278,6 +282,7 @@ void Server::handleClient(size_t i) {
 		_fds.erase(_fds.begin() + i);
 		for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
+				delete _clients[j]; 
 				_clients.erase(_clients.begin() + j);
 				break;
 			}
