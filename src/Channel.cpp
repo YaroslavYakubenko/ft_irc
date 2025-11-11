@@ -71,16 +71,16 @@ void Channel::setUserLimit(int limit) {_userLimit = limit;}
 void Channel::clearUserLimit() {_userLimit = 0;}
 
 bool Channel::kick(Client* operatorClient, Client* targetClient, const std::string &comment) {
+	if (!hasClient(targetClient)) {
+		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
+		return false;
+	}
 	std::cout << "YARIK KICK CHECK 1" << std::endl;
 	printClients();
 	std::cout << "KICK user " << targetClient->getUsername() << std::endl;
 	std::cout << "YARIK KICK CHECK 2" << std::endl;
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You're not channel operator");
-		return false;
-	}
-	if (!hasClient(targetClient)) {
-		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
 		return false;
 	}
 	std::string msg = ":" + operatorClient->getNickname() + " KICK " + _name + " " +

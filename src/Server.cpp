@@ -267,6 +267,8 @@ void Server::kick(Command *cmd){
 	std::cout << "KICK CHECK 2" << std::endl;
 	std::cout << "client name " << args[2] << std::endl;
 	Client *target_cli = findClientByNick(args[2]);
+	if(target_cli == NULL)
+
 	std::cout << "KICK CHECK 3" << std::endl;
 	if(args.size() < 3){
 		std::cout << "PARAM IS EMPTY" << std::endl;
@@ -377,7 +379,7 @@ void Server::handleClient(size_t i) {
 Client* Server::findClientByNick(const std::string& nick) {
 	std::string nickname = nick;
 	std::cout << "1 INSIDE FIND BY NICK = " << nickname << std::endl;
-	if (!nickname.empty() && (nickname.back() == '\r' || nickname.back() == '\n'))
+	if (!nickname.empty() && (nickname[nickname.size() - 1] == '\r' || nickname[nickname.size() - 1] == '\n'))
     		nickname.erase(nickname.size() - 1);
 	for (size_t i = 0; i < _clients.size(); ++i) {
 		std::cout << "Client " << i << ": " << _clients[i]->getNickname() << std::endl;
@@ -392,7 +394,7 @@ Client* Server::findClientByNick(const std::string& nick) {
 
 Channel* Server::findChannelByName(const std::string& channel) {
 	std::string channelName = channel;
-	if (!channelName.empty() && (channelName.back() == '\r' || channelName.back() == '\n'))
+	if (!channelName.empty() && (channelName[channelName.size() - 1] == '\r' || channelName[channelName.size() - 1] == '\n'))
     		channelName.erase(channelName.size() - 1);
 	for (size_t i = 0; i < _channels.size(); ++i) {
 		if (_channels[i]->getName() == channelName)
