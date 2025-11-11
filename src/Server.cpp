@@ -110,12 +110,6 @@ void Server::handleNewConnection() {
 		client_fd_struct.events = POLLIN;
 		client_fd_struct.revents = 0;
 		_fds.push_back(client_fd_struct);
-		//char buffer[BUFFER_SIZE];
-		//std::memset(buffer, 0, BUFFER_SIZE);
-		//ssize_t bytes = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
-		// BUFFER IS EMPTY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		//std::cout << "handle NEW CONNECTION buffer = " << buffer << std::endl;
-		//new_client.setInfo(buffer, bytes);
 		std::cout << "New client connected: fd=" << client_fd << std::endl;
 		printClients();
 	} // TODO: add error msg if accept returns -1
@@ -191,7 +185,9 @@ void Server::Nick(Command *cmd){
 	std::cout << "NICK IS " << nick << std::endl;
 
 	if(checkUniqueNick(nick)){
-		std::cout << "***NICK IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		//sendError(client, "433", nick, "Nickname is already in use"); // libc++abi: terminating due to uncaught exception of type std::length_error: basic_string
+		const std::string err = std::string(":server ") + "433" + " " + nick + " " + " :" + "Nickname is already in use" + "\r\n";
+		send(client->getFd(), err.c_str(), err.size(), 0);
 		removeClient(client);
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
@@ -210,8 +206,13 @@ void Server::User(Command *cmd){
 	std::cout << "USER IS " << user << std::endl;
 
 	if(checkUniqueUser(user)){
-		std::cout << "***USER IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
+		std::cout << "USER 1" << std::endl;
+		//sendError(client, "433", user, "Username is already in use");
+		const std::string err = std::string(":server ") + "433" + " " + user + " " + " :" + "Username is already in use" + "\r\n";
+		send(client->getFd(), err.c_str(), err.size(), 0);
+		std::cout << "USER 2" << std::endl;
 		removeClient(client);
+		std::cout << "USER 3" << std::endl;
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
 		client->setUsername(user);
@@ -271,6 +272,18 @@ void Server::kick(Command *cmd){
 	target_chan->kick(cmd->getClient(), target_cli, args[2]);
 }
 
+void Server::topic(Command *cmd){
+	std::vector<std::string>args = cmd->getArgs();
+	Channel *target_chan = findChannelByName(args[0]);
+	if(args.size() < 2){
+		std::cout << "PARAM IS EMPTY" << std::endl;
+		args.resize(2);
+		args[1] = "";
+    }
+
+	target_chan->topicCommand(cmd->getClient(), args[1]);
+}
+
 void Server::execCmd(Command *cmd){ 
 	std::string mycmd = cmd->getCmd();
 	std::vector<std::string>args = cmd->getArgs();
@@ -299,13 +312,12 @@ void Server::execCmd(Command *cmd){
 		mode(cmd);
 	if(mycmd == "KICK")
   		kick(cmd);	
+	if(mycmd == "TOPIC")
+  		topic(cmd);
 }
 
 void Server::process_msg(int fd, std::string msg){
 	std::cout << "PROCCESS_MSG" << std::endl;
-	//char ss[512];
-	//strncpy(ss, buffer, len);
-	//ss[len] = '\0';
 	Client * client_ptr;
 	for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
@@ -319,6 +331,7 @@ void Server::process_msg(int fd, std::string msg){
 }
 
 void Server::handleClient(size_t i) {
+	std::cout << "HANDLE CLIENT 1" << std::endl;
 	int	fd = _fds[i].fd;
 	std::string msg;
 	char buffer[BUFFER_SIZE];
@@ -336,18 +349,21 @@ void Server::handleClient(size_t i) {
 			}
 		}
 	} else {
+		std::cout << "HANDLE CLIENT 2" << std::endl;
 		_buffer[fd].append(buffer, bytes);
 
 		// Process all complete IRC messages
 		size_t pos;
-		while ((pos = _buffer[fd].find("\r\n")) != std::string::npos) {
+		while ((pos = _buffer[fd].find('\n')) != std::string::npos) {
+			std::cout << "WHILE" << std::endl;
 			msg = _buffer[fd].substr(0, pos);
-			_buffer[fd].erase(0, pos + 2);
+			_buffer[fd].erase(0, pos + 1);
 
 			std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
+			
 			process_msg(fd, msg);
-
 		}
+		std::cout << "HANDLE CLIENT 3" << std::endl;
 	}
 }
 

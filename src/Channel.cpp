@@ -100,7 +100,7 @@ bool Channel::inviteCommand(Client* operatorClient, Client* targetClient) {
 }
 
 bool Channel::topicCommand(Client* client, const std::string &newTopic) {
-	if (newTopic.empty()) {
+	if (newTopic == "") {
 		std::string msg = ":server 332 " + client->getNickname() + " " + _name + " :" + _topic + "\r\n";
 		send(client->getFd(), msg.c_str(), msg.size(), 0);
 		return true;
@@ -201,6 +201,7 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 		send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 	return true;
 }
+
 
 Client* Channel::findClientByNick(const std::string& nickname) {
 	for (size_t i = 0; i < _clients.size(); ++i) {

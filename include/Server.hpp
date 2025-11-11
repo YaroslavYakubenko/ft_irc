@@ -66,5 +66,6 @@ public:
 	void invite(Command *cmd);
 	void mode(Command *cmd);
 	void kick(Command *cmd);
+	void topic(Command *cmd);
 
 };
