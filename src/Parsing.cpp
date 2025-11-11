@@ -1,6 +1,6 @@
 #include "../include/Parsing.hpp"
 
-Command parse(const std::string &msg, Server *server, Client *client){
+Command parse(const std::string &msg, Client *client){
 	std::cout << "PARSE" << std::endl;
     std::istringstream iss(msg);
     std::string cmd;

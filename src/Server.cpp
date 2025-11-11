@@ -253,14 +253,14 @@ void Server::execCmd(Command *cmd){
 }
 
 void Server::process_msg(int fd, std::string msg){
-	Client * client_ptr;
+	Client * client_ptr = NULL;
 	for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
 				client_ptr = _clients[j];
 				break;
 			}
 	}
-	Command cmd = parse(msg.c_str(), this, client_ptr);
+	Command cmd = parse(msg.c_str(), client_ptr);
 	cmd.printCmd();
 	execCmd(&cmd);
 }

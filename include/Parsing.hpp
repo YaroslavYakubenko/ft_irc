@@ -11,4 +11,4 @@ class Server;
 class Client;
 class Command;
 
-Command parse(const std::string &msg, Server *server, Client *client);
+Command parse(const std::string &msg, Client *client);
