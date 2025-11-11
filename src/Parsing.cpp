@@ -8,10 +8,6 @@ Command parse(const std::string &msg, Server *server, Client *client){
     std::string arg;
 
 	iss >> cmd;
-    /*if(cmd == "CAP"){
-		while(cmd != "PASS")
-			iss >> cmd;
-	}*/
     while(iss >> arg){
 		if(arg[0] == ':'){
 			std::string rest;
@@ -24,5 +20,4 @@ Command parse(const std::string &msg, Server *server, Client *client){
     }
 	Command command(cmd, args, client);
 	return command;
-	//execute
  }

@@ -6,19 +6,6 @@
 
 class Client;
 
-/*enum Commands{
-	UNKNOWN,
-	USER,
-	NICK,
-	PASS,
-	JOIN,
-	PRIVMSG,
-	KICK,
-	INVITE,
-	TOPIC,
-	MODE
- };*/
-
 class Command{
 private:
     std::string cmd;
@@ -27,8 +14,6 @@ private:
 public:
     Command(){};
     Command(std::string cmd, std::vector<std::string>args, Client *client) : cmd(cmd), args(args), client(client){};
-	//Command(const Command& other);
-	//Command& operator=(const Command& other);
 	~Command(){};
 
     std::string getCmd(){return this->cmd;}

@@ -36,16 +36,6 @@ void Client::setHostname(const std::string& hostname) {_hostname = hostname;}
 void Client::setRealname(const std::string& realname) {_realname = realname;}
 void Client::setRegistered(bool registered) {_registered = registered;}
 
-
-
-/*void Client::setInfo(char *buffer, size_t bytes){
-	char ss[512];
-	strncpy(ss, buffer, bytes);
-	ss[bytes] = '\0';
-	std::cout << "SET INFO ss = " << ss << std::endl;
-	clientParse(ss);
-}*/
-
 bool Client::popLine(std::string &out) {
 	size_t pos = _recv_buffer.find("\r\n");
 	size_t len = 2;

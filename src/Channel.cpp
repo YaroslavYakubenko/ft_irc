@@ -75,10 +75,6 @@ bool Channel::kick(Client* operatorClient, Client* targetClient, const std::stri
 		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
 		return false;
 	}
-	std::cout << "YARIK KICK CHECK 1" << std::endl;
-	printClients();
-	std::cout << "KICK user " << targetClient->getUsername() << std::endl;
-	std::cout << "YARIK KICK CHECK 2" << std::endl;
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You're not channel operator");
 		return false;
@@ -92,7 +88,6 @@ bool Channel::kick(Client* operatorClient, Client* targetClient, const std::stri
 }
 
 bool Channel::inviteCommand(Client* operatorClient, Client* targetClient) {
-	std::cout << "Operator: " << operatorClient->getUsername() << ", target: " << targetClient->getUsername() << std::endl;
 	if (!isOperator(operatorClient)) {
 		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
@@ -125,11 +120,6 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 		_server->sendError(operatorClient, "482", _name, "You don't have operator's rights");
 		return false;
 	}
-	// Client* target = findClientByNick(param);
-	// 	if (param != "" && !target) {
-	// 		_server->sendError(operatorClient, "441", _name, "They aren't on that channel");
-	// 		return false;
-	// 	}
 	switch (mode) {
 		case 'i':
 			if (!param.empty()) {

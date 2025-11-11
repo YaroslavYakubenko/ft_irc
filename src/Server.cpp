@@ -30,7 +30,7 @@ void Server::initSocket() {
 		perror("fcntl");
 		exit(EXIT_FAILURE);
 	}
-	if (_listener < 0) { // TODO: shouldn't it be right after creation of the socket?
+	if (_listener < 0) {
 		perror("socket");
 		exit(EXIT_FAILURE);
 	}
@@ -64,8 +64,6 @@ void Server::initSocket() {
 }
 
 void Server::run() {
-	// char buffer[BUFFER_SIZE];
-	// bool running = true;
 	while (running) {
 		int ret = poll(_fds.data(), _fds.size(), -1);
 		if (ret < 0) {
@@ -74,7 +72,6 @@ void Server::run() {
 			perror("poll");
 			break;
 		}
-		// TODO: split listener and clients check (if (_fds[i].fd == _listener))
 		for (size_t i = 0; i < _fds.size(); ++i) {
 			if (_fds[i].revents & POLLIN) {
 				if (_fds[i].fd == _listener) {
@@ -100,7 +97,7 @@ void Server::printClients(){
 void Server::handleNewConnection() {
 	sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
-	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len); // FIXME: should we not check if accept returns an error
+	int client_fd = accept(_listener, (sockaddr*)&client_addr, &client_len);
 	setNonBlocking(client_fd);
 	if (client_fd >= 0) {
 		Client* new_client = new Client(client_fd);
@@ -112,14 +109,7 @@ void Server::handleNewConnection() {
 		_fds.push_back(client_fd_struct);
 		std::cout << "New client connected: fd=" << client_fd << std::endl;
 		printClients();
-	} // TODO: add error msg if accept returns -1
-}
-
-bool Server::checkUniqueClient(const std::string& nickname, const std::string& username) {
-	for (size_t i = 0; i < _clients.size(); ++i)
-		if (_clients[i]->getNickname() == nickname || _clients[i]->getUsername() == username)
-			return 1;
-	return 0;
+	}
 }
 
 bool Server::checkUniqueNick(const std::string& nickname) {
@@ -141,7 +131,6 @@ void Server::removeClient(Client* client) {
 	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if ((*it)->getFd() == client->getFd()) {
 			send((*it)->getFd(), msg.c_str(), msg.size(), 0);
-			//usleep(100000);
 			close((*it)->getFd());
 			_clients.erase(it);
 			break;
@@ -149,49 +138,16 @@ void Server::removeClient(Client* client) {
 	}
 }
 
-/*void Server::Pass(Command *cmd){
-	std::cout << "INSIDE PASS" << std::endl;
-	Client *client = cmd->getClient();
-	std::string nick, user;
-	std::vector<std::string>args = cmd->getArgs();
-	std::vector<std::string>::iterator it = args.begin();
-    while(it != args.end())
-    {
-        if(*it == "NICK")
-			nick = *(++it);
-		if(*it == "USER")
-			user = *(++it);
-		it++;
-    }
-	if(checkUniqueClient(nick, user)){
-		std::cout << "***CLIENT IS NOT UNIQUE, YOU WILL BE DISCONNECTED!***" << std::endl;
-		removeClient(client);
-		//disconnect client and tell him so <----------------------------------------here
-	} else{
-		client->setNickname(nick);
-		client->setUsername(user);
-		std::cout << "New client info:" << std::endl;
-		std::cout << "NICK: " << client->getNickname() << std::endl;
-		std::cout << "User: " << client->getUsername() << std::endl;
-	}
-	printClients();
-}*/
-
 void Server::Nick(Command *cmd){
-	std::cout << "INSIDE NICK" << std::endl;
 	Client *client = cmd->getClient();
 	std::vector<std::string>args = cmd->getArgs();
 	std::string nick = args[0];
-	std::cout << "NICK IS " << nick << std::endl;
 
 	if(checkUniqueNick(nick)){
-		//sendError(client, "433", nick, "Nickname is already in use"); // libc++abi: terminating due to uncaught exception of type std::length_error: basic_string
 		const std::string err = std::string(":server ") + "433" + " " + nick + " " + " :" + "Nickname is already in use" + "\r\n";
 		send(client->getFd(), err.c_str(), err.size(), 0);
 		removeClient(client);
-		//disconnect client and tell him so <----------------------------------------here
 	} else{
-		
 		client->setNickname(nick);
 		std::cout << "New client info:" << std::endl;
 		std::cout << "NICK: " << client->getNickname() << std::endl;
@@ -200,35 +156,24 @@ void Server::Nick(Command *cmd){
 }
 
 void Server::User(Command *cmd){
-	std::cout << "INSIDE USER" << std::endl;
 	Client *client = cmd->getClient();
 	std::vector<std::string>args = cmd->getArgs();
 	std::string user = args[0];
-	std::cout << "USER IS " << user << std::endl;
 
 	if(checkUniqueUser(user)){
-		std::cout << "USER 1" << std::endl;
-		//sendError(client, "433", user, "Username is already in use");
 		const std::string err = std::string(":server ") + "433" + " " + user + " " + " :" + "Username is already in use" + "\r\n";
 		send(client->getFd(), err.c_str(), err.size(), 0);
-		std::cout << "USER 2" << std::endl;
 		removeClient(client);
-		std::cout << "USER 3" << std::endl;
-		//disconnect client and tell him so <----------------------------------------here
 	} else{
 		client->setUsername(user);
 		std::cout << "USER: " << client->getUsername() << std::endl;
-
 	}
 }
 
 void Server::invite(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
-	std::cout << "INVITE1" << std::endl;
 	Channel *target_chan = findChannelByName(args[1]);
-	std::cout << "INVITE2" << std::endl;
 	Client *target_cli = findClientByNick(args[0]);
-	std::cout << "INVITE3" << std::endl;
 	if(!target_cli){
 		sendError(cmd->getClient(), "401", args[0], "No such nick/channel");
 		return;
@@ -237,9 +182,7 @@ void Server::invite(Command *cmd){
 		sendError(cmd->getClient(), "401", args[1], "No such nick/channel");
 		return;
 	}
-	std::cout << "INVITE4" << std::endl;
 	target_chan->inviteCommand(cmd->getClient(), target_cli);
-	std::cout << "INVITE5" << std::endl;
 }
 
 void Server::mode(Command *cmd){
@@ -247,13 +190,12 @@ void Server::mode(Command *cmd){
   if(args.size() < 2)
     return;
   Channel *target_chan = findChannelByName(args[0]);
-  bool enable = 1; // what if not -+, can you make int enable = -1 for default
+  bool enable = 1;
   std::string opt = args[1];
   if(opt[0] == '-')
     enable = 0;
   char mode = opt[1];
   if(args.size() < 3){
-    std::cout << "PARAM IS EMPTY" << std::endl;
     args.resize(3);
     args[2] = "";
     }
@@ -261,35 +203,24 @@ void Server::mode(Command *cmd){
 }
 
 void Server::kick(Command *cmd){
-	std::cout << "KICK CHECK 1" << std::endl;
 	std::vector<std::string>args = cmd->getArgs();
 	Channel *target_chan = findChannelByName(args[0]);
-	std::cout << "KICK CHECK 2" << std::endl;
-	std::cout << "client name " << args[2] << std::endl;
 	Client *target_cli = findClientByNick(args[2]);
 	if(target_cli == NULL)
-
-	std::cout << "KICK CHECK 3" << std::endl;
 	if(args.size() < 3){
-		std::cout << "PARAM IS EMPTY" << std::endl;
 		args.resize(3);
 		args[3] = "";
     }
-	std::cout << "KICK CHECK 4" << std::endl;
-
 	target_chan->kick(cmd->getClient(), target_cli, args[2]);
-	std::cout << "KICK CHECK 5" << std::endl;
 }
 
 void Server::topic(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
 	Channel *target_chan = findChannelByName(args[0]);
 	if(args.size() < 2){
-		std::cout << "PARAM IS EMPTY" << std::endl;
 		args.resize(2);
 		args[1] = "";
     }
-
 	target_chan->topicCommand(cmd->getClient(), args[1]);
 }
 
@@ -302,17 +233,13 @@ void Server::execCmd(Command *cmd){
 	if(mycmd == "USER")
 		User(cmd);
 	if(mycmd == "PRIVMSG"){
-		std::cout << "Arg[1] = " << args[0] << "Arg[2] = " << args[1] << std::endl;
 		privmsg(*cmd->getClient(), args[0], args[1]);
 	}
 	if(mycmd == "JOIN"){
-		std::cout << "SEG CHECK 1" << std::endl;
 		if(args.size() < 2){
-		std::cout << "KEY IS EMPTY" << std::endl;
 		args.resize(2);
 		args[1] = "";
 		}
-
 		joinChannel(cmd->getClient(), args[0], args[1]);
   }
 	if(mycmd == "INVITE")
@@ -326,7 +253,6 @@ void Server::execCmd(Command *cmd){
 }
 
 void Server::process_msg(int fd, std::string msg){
-	std::cout << "PROCCESS_MSG" << std::endl;
 	Client * client_ptr;
 	for (size_t j = 0; j < _clients.size(); ++j) {
 			if (_clients[j]->getFd() == fd) {
@@ -340,13 +266,12 @@ void Server::process_msg(int fd, std::string msg){
 }
 
 void Server::handleClient(size_t i) {
-	std::cout << "HANDLE CLIENT 1" << std::endl;
 	int	fd = _fds[i].fd;
 	std::string msg;
 	char buffer[BUFFER_SIZE];
 	std::memset(buffer, 0, BUFFER_SIZE);
 	ssize_t bytes = recv(_fds[i].fd, buffer, BUFFER_SIZE - 1, 0);
-	if (bytes <= 0) { // TODO: 0 means client disconnected, <0 means error and it has errno
+	if (bytes <= 0) {
 		std::cout << "Client dissconnected: fd=" << _fds[i].fd << std::endl;
 		_buffer.erase(fd);
 		close(fd);
@@ -358,37 +283,26 @@ void Server::handleClient(size_t i) {
 			}
 		}
 	} else {
-		std::cout << "HANDLE CLIENT 2" << std::endl;
 		_buffer[fd].append(buffer, bytes);
-
-		// Process all complete IRC messages
 		size_t pos;
 		while ((pos = _buffer[fd].find('\n')) != std::string::npos) {
-			std::cout << "WHILE" << std::endl;
 			msg = _buffer[fd].substr(0, pos);
 			_buffer[fd].erase(0, pos + 1);
-
 			std::cout << "Received from fd=" << fd << ": " << msg << std::endl;
-			
 			process_msg(fd, msg);
 		}
-		std::cout << "HANDLE CLIENT 3" << std::endl;
 	}
 }
 
 Client* Server::findClientByNick(const std::string& nick) {
 	std::string nickname = nick;
-	std::cout << "1 INSIDE FIND BY NICK = " << nickname << std::endl;
 	if (!nickname.empty() && (nickname[nickname.size() - 1] == '\r' || nickname[nickname.size() - 1] == '\n'))
     		nickname.erase(nickname.size() - 1);
 	for (size_t i = 0; i < _clients.size(); ++i) {
-		std::cout << "Client " << i << ": " << _clients[i]->getNickname() << std::endl;
 		if (_clients[i]->getNickname() == nickname){
-			std::cout << "ACTUALLY FINDS IT" << std::endl;
 			return _clients[i];
 		}
 	}
-	std::cout << "2 INSIDE FIND BY NICK = " << nickname << std::endl;
 	return NULL;
 }
 
@@ -418,7 +332,6 @@ void Server::removeChannel(Channel* channel) {
 }
 
 void Server::joinChannel(Client* client, const std::string& channelName, const std::string& key) {
-	std::cout << "INSIDE JOIN " << channelName << " " << key << std::endl;
 	if(channelName[0] != '#' && channelName[0] != '!' && channelName[0] != '+' && channelName[0] != '&'){
 		sendError(client, "479", channelName, "Illegal channel name");
 		return;
@@ -426,7 +339,6 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 
 	Channel* channel = findChannelByName(channelName);
 	if (!channel) {
-		std::cout << "HERE1!" << std::endl;
 		channel = new Channel(channelName, this);
 		addChannel(channel);
 		if (key != "")
@@ -448,7 +360,6 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 		std::string endMsg = ":server 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list.\r\n";
 		send(client->getFd(), endMsg.c_str(), endMsg.size(), 0);
 	} else {
-		std::cout << "HERE2!" << std::endl;
 		if (!channel) {
 			sendError(client, "403", channelName, "No such channel");
 			return;
@@ -461,7 +372,6 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 			sendError(client, "475", channelName, "Cannot join channel (+k)");
 			return;
 		}
-		std::cout << "getClients.size: " << channel->getClients().size() << "UserLimit = " << channel->getUserLimit() << " Casted = " << static_cast<size_t>(channel->getUserLimit()) << std::endl;
 		if (channel->getUserLimit() > 0 && channel->getClients().size() >=
 			static_cast<size_t>(channel->getUserLimit())) {
 			sendError(client, "471", channelName, "Cannot join channel (+l)");
@@ -471,18 +381,15 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 			sendError(client, "443", channelName, "is already on channel");	
 			return;
 		}
-		std::cout << "HERE3!" << std::endl;
 		channel->addClient(client);
 		if (channel->isInviteOnly() && channel->isInvited(client))
 			channel->removeInvite(client);
 		std::string joinMsg = ":" + client->getNickname() + " JOIN " + channelName + "\r\n";
 		const std::vector<Client*>& members = channel->getClients();
-		std::cout << "HERE4!" << std::endl;
 		for (size_t i = 0; i < members.size(); ++i)
 			send(members[i]->getFd(), joinMsg.c_str(), joinMsg.size(), 0);
 		channel->topicCommand(client, "");
 		std::string names = ":server 353 " + client->getNickname() + " = " + channelName + " :";
-		std::cout << "HERE5!" << std::endl;
 		for (size_t i = 0 ; i < members.size(); ++i)
 			if (channel->isOperator(members[i]))
 				names += "@" + members[i]->getNickname() + " ";
@@ -492,7 +399,6 @@ void Server::joinChannel(Client* client, const std::string& channelName, const s
 		send(client->getFd(), names.c_str(), names.size(), 0);
 		std::string endMsg = ":server 366 " + client->getNickname() + "  " + channelName + " :End of /name list\r\n";
 		send(client->getFd(), endMsg.c_str(), endMsg.size(), 0);
-		std::cout << "HERE6!" << std::endl;
 	}
 }
 
@@ -502,7 +408,6 @@ void Server::sendError(Client* client, const std::string& code, const std::strin
 }
 
 void Server::privmsg(const Client& sender, const std::string& target, const std::string& message) {
-	std::cout << "INSIDE PRIVMSG 1!!!" << std::endl;
 	if (target.empty() || message.empty())
 		return;
 	if (target[0] == '#') {
@@ -516,12 +421,10 @@ void Server::privmsg(const Client& sender, const std::string& target, const std:
 				send(clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 		}
 	} else {
-		std::cout << "INSIDE PRIVMSG 2!!!" << std::endl;
 		printClients();
 		Client* recipient = findClientByNick(target);
 		if (!recipient)
 			return;
-		std::cout << "INSIDE PRIVMSG 3!!!" << std::endl;
 		std::string msg = ":" + sender.getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
 		std::cout << "fd = " << recipient->getFd() << ", msg = " << msg.c_str() << ", size = " << msg.size() << std::endl;
 		send(recipient->getFd(), msg.c_str(), msg.size(), 0);

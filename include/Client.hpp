@@ -38,7 +38,6 @@ public:
 	void	setRealname(const std::string& realname);
 	void	setRegistered(bool registered);
 
-	// void	setInfo(char *buffer, size_t bytes);
 	void 	clientParse(const std::string &msg);
 
 	bool	popLine(std::string &out);
