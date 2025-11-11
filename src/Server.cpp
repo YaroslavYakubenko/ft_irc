@@ -75,15 +75,15 @@ void Server::run() {
 			break;
 		}
 		// TODO: split listener and clients check (if (_fds[i].fd == _listener))
-		for (size_t i = 0; i < _fds.size(); ++i) {
-			if (_fds[i].revents & POLLIN) {
-				if (_fds[i].fd == _listener) {
-					handleNewConnection();
-				} else {
-					handleClient(i);
-				}
-			}
-		}
+		for (int i = _fds.size() - 1; i >= 0; --i) {
+    if (_fds[i].revents & POLLIN) {
+        if (_fds[i].fd == _listener) {
+            handleNewConnection();
+        } else {
+            handleClient(i); // safe to erase _fds[i] inside
+        }
+    }
+}
 	}
 	for (int j = _clients.size() - 1; j >= 0; --j) {
 	    delete _clients[j];
@@ -147,13 +147,20 @@ bool Server::checkUniqueUser(const std::string& user) {
 }
 
 void Server::removeClient(Client* client) {
-	std::string msg = "Your nick or user is already taken. Please change it and try to connect again!";
-	for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		if ((*it)->getFd() == client->getFd()) {
-			send((*it)->getFd(), msg.c_str(), msg.size(), 0);
-			//usleep(100000);
-			close((*it)->getFd());
-			_clients.erase(it);
+
+	int fd = client->getFd();
+	for (size_t i = 0; i < _fds.size(); ++i) {
+		if (_fds[i].fd == fd) {
+			close(_fds[i].fd);
+			_fds.erase(_fds.begin() + i);
+			break;
+		}
+	}
+	_buffer.erase(fd);
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getFd() == fd) {
+			delete _clients[i];
+			_clients.erase(_clients.begin() + i);
 			break;
 		}
 	}
@@ -193,6 +200,7 @@ void Server::Nick(Command *cmd){
 	std::vector<std::string>args = cmd->getArgs();
 	std::string nick = args[0];
 	std::cout << "NICK IS " << nick << std::endl;
+	printClients();
 
 	if(checkUniqueNick(nick)){
 		//sendError(client, "433", nick, "Nickname is already in use"); // libc++abi: terminating due to uncaught exception of type std::length_error: basic_string
@@ -201,7 +209,6 @@ void Server::Nick(Command *cmd){
 		removeClient(client);
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
-		
 		client->setNickname(nick);
 		std::cout << "New client info:" << std::endl;
 		std::cout << "NICK: " << client->getNickname() << std::endl;
