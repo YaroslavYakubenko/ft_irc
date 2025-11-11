@@ -129,14 +129,14 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 	switch (mode) {
 		case 'i':
 			if (!param.empty()) {
-				_server->sendError(operatorClient, "472", _name, "Invite-only (+i) does noe require a parameter");
+				_server->sendError(operatorClient, "472", _name, "Invite-only (+i) does not require a parameter");
 				return false;
 			}
 			_inviteOnly = enable;
 			break;
 		case 't':
-			if (param.empty()) {
-				_server->sendError(operatorClient, "472", _name, "Topic lock (+t) does noe require a parameter");
+			if (!param.empty()) {
+				_server->sendError(operatorClient, "472", _name, "Topic lock (+t) does not require a parameter");
 				return false;
 			}
 			_topicLock = enable;

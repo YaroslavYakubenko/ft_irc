@@ -21,7 +21,7 @@ Trying to write to itself: OK
 
 //MODE +o
 Trying to give to client operator's rights: OK
-Client who took operator's rights could kick client from channel: OK
+Client who took operator's rights could kick client from channel: NO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Client who took operator's rights could kick by itself from channel: OK
 Trying to give back to client operator's rights: OK
 Trying to use operator's rights after remove rights: OK
@@ -30,7 +30,9 @@ Trying to remove operator rights from the only operator: OK
 
 
 //MODE +l
-Trying to set limit to channel: NO (#withoutPass :They aren't on that channel)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Trying to set limit to channel: OK
+Trying to join to a full channel: OK
+Trying to set back limit to channel: OK
 
 
 //MODE +i
@@ -46,12 +48,12 @@ Trying to give invitation again after give invitation and joined client: No (sho
 //MODE +t
 Trying to give rights to anyone to change or look channel's topic: OK
 Trying to give back rights to anyone to change or look channel's topic: OK
-Trying to give rights (/mode '+ t'): NO (should works)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Trying to give rights (/mode '- t'): NO (should works)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Trying to give rights (/mode '+ t'): OK
+Trying to give rights (/mode '- t'): OK
 
 
 //KICK
-Trying to kick client from channel: OK
+Trying to kick client from channel: NO
 Trying to kick client without rights from channel: OK (#withoutPass :You're not channel operator)
 
 
