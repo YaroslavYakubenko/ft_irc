@@ -110,7 +110,7 @@ bool Channel::topicCommand(Client* client, const std::string &newTopic) {
 		return false;
 	}
 	_topic = newTopic;
-	std::string msg = ":" + client->getNickname() + " TOPIC " + _name + " :" + _topic + "\r\n";
+	std::string msg = ":" + client->getNickname() + "!" + client->getUsername() + " TOPIC " + _name + " :" + _topic + "\r\n";
 	for (size_t i = 0; i < _clients.size(); i++)
 		send(_clients[i]->getFd(), msg.c_str(), msg.size(), 0);
 	return true;
@@ -135,7 +135,7 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 			_inviteOnly = enable;
 			break;
 		case 't':
-			if (!param.empty()) {
+			if (param.empty()) {
 				_server->sendError(operatorClient, "472", _name, "Topic lock (+t) does noe require a parameter");
 				return false;
 			}
@@ -143,7 +143,7 @@ bool Channel::modeCommand(Client* operatorClient, char mode, bool enable, const 
 			break;
 		case 'k':
 			if (enable) {
-				if (!param.empty()) {
+				if (param.empty()) {
 					_server->sendError(operatorClient, "461", _name, "Not enough parameters for +k");
 					return false;
 				}
