@@ -27,6 +27,7 @@ public:
 
 	std::set<Client*> getOperators();
 	void printOperators();
+	void printClients();
 
 	const std::string &getName() const;
 	const std::string &getTopic() const;

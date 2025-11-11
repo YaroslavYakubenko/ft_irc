@@ -191,6 +191,7 @@ void Server::Nick(Command *cmd){
 		removeClient(client);
 		//disconnect client and tell him so <----------------------------------------here
 	} else{
+		
 		client->setNickname(nick);
 		std::cout << "New client info:" << std::endl;
 		std::cout << "NICK: " << client->getNickname() << std::endl;
@@ -260,16 +261,22 @@ void Server::mode(Command *cmd){
 }
 
 void Server::kick(Command *cmd){
+	std::cout << "KICK CHECK 1" << std::endl;
 	std::vector<std::string>args = cmd->getArgs();
 	Channel *target_chan = findChannelByName(args[0]);
+	std::cout << "KICK CHECK 2" << std::endl;
+	std::cout << "client name " << args[2] << std::endl;
 	Client *target_cli = findClientByNick(args[2]);
+	std::cout << "KICK CHECK 3" << std::endl;
 	if(args.size() < 3){
 		std::cout << "PARAM IS EMPTY" << std::endl;
 		args.resize(3);
 		args[3] = "";
     }
+	std::cout << "KICK CHECK 4" << std::endl;
 
 	target_chan->kick(cmd->getClient(), target_cli, args[2]);
+	std::cout << "KICK CHECK 5" << std::endl;
 }
 
 void Server::topic(Command *cmd){
@@ -367,17 +374,28 @@ void Server::handleClient(size_t i) {
 	}
 }
 
-Client* Server::findClientByNick(const std::string& nickname) {
+Client* Server::findClientByNick(const std::string& nick) {
+	std::string nickname = nick;
+	std::cout << "1 INSIDE FIND BY NICK = " << nickname << std::endl;
+	if (!nickname.empty() && (nickname.back() == '\r' || nickname.back() == '\n'))
+    		nickname.erase(nickname.size() - 1);
 	for (size_t i = 0; i < _clients.size(); ++i) {
-		if (_clients[i]->getNickname() == nickname)
+		std::cout << "Client " << i << ": " << _clients[i]->getNickname() << std::endl;
+		if (_clients[i]->getNickname() == nickname){
+			std::cout << "ACTUALLY FINDS IT" << std::endl;
 			return _clients[i];
+		}
 	}
+	std::cout << "2 INSIDE FIND BY NICK = " << nickname << std::endl;
 	return NULL;
 }
 
-Channel* Server::findChannelByName(const std::string& chhanelName) {
+Channel* Server::findChannelByName(const std::string& channel) {
+	std::string channelName = channel;
+	if (!channelName.empty() && (channelName.back() == '\r' || channelName.back() == '\n'))
+    		channelName.erase(channelName.size() - 1);
 	for (size_t i = 0; i < _channels.size(); ++i) {
-		if (_channels[i]->getName() == chhanelName)
+		if (_channels[i]->getName() == channelName)
 			return _channels[i];
 		}
 	return NULL;
